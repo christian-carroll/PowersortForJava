@@ -126,6 +126,8 @@ public class Main {
             for (int i = topOfStack; i > runPower; i--) {
                 if (runStartStack[i] == NULL_INDEX) continue;
 
+                // For when I forget again, In this one we are passing endA as the endY parameter because we are merging run A if possible, not B
+                // We couldn't merge B as we don't know its node power yet as we have to discover the next run for that
                 mergeRuns(input, runStartStack[i], runEndStack[i]+1, endA, buffer);
                 startA = runStartStack[i];
                 runStartStack[i] = NULL_INDEX;
@@ -157,6 +159,7 @@ public class Main {
 
         }
 
+        // This is currently not stable, not sure why as all i did was change all the comparators to equalities signs
         int[] workArray = new int[B.length];
         TimSortNoComparator.sort(B,0, B.length-1, workArray, 0, B.length);
         System.out.println("Timsort no Comparator");

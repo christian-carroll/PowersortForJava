@@ -118,18 +118,18 @@ class TimSortAlterNoComparator<T> {
 
     /**
      * A stack of pending runs yet to be merged.  Run i starts at
-     * address base[i] and extends for len[i] elements.  It's always
+     * address base[i] and extends to address end[i].  It's sometimes
      * true (so long as the indices are in bounds) that:
      *
-     *     runBase[i] + runLen[i] == runBase[i + 1]
+     *     runEnd[i] - 1 == runBase[i + 1]
      *
      * so we could cut the storage for this, but it's a minor amount,
      * and keeping all the info explicit simplifies the code.
      */
     private int stackSize = 0;  // Number of pending runs on stack
     private final int[] runBase;
-    private final int[] runLen;
-    private static int stackTop = 0;
+    private final int[] runEnd;
+    private int stackTop = 0;
     static int NULL_INDEX = Integer.MIN_VALUE;
 
     /**
@@ -179,7 +179,7 @@ class TimSortAlterNoComparator<T> {
                         len <   1542  ? 10 :
                         len < 119151  ? 24 : 49);
         runBase = new int[stackLen];
-        runLen = new int[stackLen];
+        runEnd = new int[stackLen];
     }
 
     /*
@@ -207,7 +207,6 @@ class TimSortAlterNoComparator<T> {
 
         int start = lo; int end = hi;
 
-
         int nRemaining  = hi - lo;
         if (nRemaining < 2)
             return;  // Arrays of size 0 and 1 are always sorted
@@ -227,26 +226,38 @@ class TimSortAlterNoComparator<T> {
         TimSortAlterNoComparator ts = new TimSortAlterNoComparator(a, work, workBase, workLen);
         int minRun = minRunLength(nRemaining);
         int prevRunBase = 0;
+        int prevRunEnd = 0;
 
         do {
             // Identify next run
-            int runLen = countRunAndMakeAscending(a, lo, hi);
+            // In a later iteration it will likely make sense to rewrite this method to return the end of the run instead of it's length
+            // but for now i'll just minus 1
+            int runLen = countRunAndMakeAscending(a, lo, hi) - 1;
 
             // If run is short, extend to min(minRun, nRemaining)
             if (runLen < minRun) {
                 int force = nRemaining <= minRun ? nRemaining : minRun;
-                binarySort(a, lo, lo + force, lo + runLen);
+                // This will also need to be rewritten to take the start as just lo + runLen
+                binarySort(a, lo, lo + force, lo + runLen + 1);
                 runLen = force;
             }
 
             int runPower = nodePower(start, end, prevRunBase, lo, lo + runLen);
-            for (int i = stackTop; i > runPower; i--) {
+            for (int i = ts.stackTop; i > runPower; i--) {
                 if (ts.runBase[i] == NULL_INDEX) continue;
 
-                mergeRuns(a, ts.runBase[i], ts.runBase[i+1], ts.runBase[], buffer);
-                startA = runStartStack[i];
-                runStartStack[i] = NULL_INDEX;
+                mergeRuns(a, ts.runBase[i], ts.runBase[i+1], prevRunBase , work);
+                prevRunBase = ts.runBase[i];
+                ts.runBase[i] = NULL_INDEX;
             }
+
+            // could seperate this part /\ into a merge collapse method and this part \/ onto a push run method like was done before
+
+            ts.runBase[runPower] = prevRunBase;
+            ts.runEnd[runPower] = prevRunEnd;
+            ts.stackTop = runPower;
+            prevRunBase = lo;
+            prevRunEnd = lo + runLen;
 
             // Push run onto pending-run stack, and maybe merge
 //            ts.pushRun(lo, runLen);
@@ -384,6 +395,21 @@ class TimSortAlterNoComparator<T> {
         }
     }
 
+    private static void mergeRuns(int[] array, int startX, int startY, int endY, int[] temp) {
+        // Form a bitonic sequence by putting the first run into the temp array in order, then the second run in reverse
+        //so that the result is an array where it first has an increasing run then a decreasing run
+        int i, j;
+        for(i = startX; i < startY; i++) temp[i] = array[i];
+        for (j = startY; j <= endY; j++) temp[j] = array[endY+startY-j];
+        i = startX; j = endY;
+        for (int k = startX; k <= endY; k++) {
+            array[k] = temp[j] < temp[i] ? temp[j--] : temp[i++];
+        }
+        //could use an array copy but would lack the i and j for later
+        //loop array backwards and copy it forward?
+        // as java is pass by value, could use startX and endY in the final iteration, but it alters the values passed to it?
+    }
+
     /**
      * Returns the minimum acceptable run length for an array of the specified
      * length. Natural runs shorter than this will be extended with
@@ -419,7 +445,7 @@ class TimSortAlterNoComparator<T> {
      */
     private void pushRun(int runBase, int runLen) {
         this.runBase[stackSize] = runBase;
-        this.runLen[stackSize] = runLen;
+        this.runEnd[stackSize] = runLen;
         stackSize++;
     }
 
@@ -442,11 +468,11 @@ class TimSortAlterNoComparator<T> {
     private void mergeCollapse() {
         while (stackSize > 1) {
             int n = stackSize - 2;
-            if (n > 0 && runLen[n-1] <= runLen[n] + runLen[n+1] ||
-                n > 1 && runLen[n-2] <= runLen[n] + runLen[n-1]) {
-                if (runLen[n - 1] < runLen[n + 1])
+            if (n > 0 && runEnd[n-1] <= runEnd[n] + runEnd[n+1] ||
+                n > 1 && runEnd[n-2] <= runEnd[n] + runEnd[n-1]) {
+                if (runEnd[n - 1] < runEnd[n + 1])
                     n--;
-            } else if (n < 0 || runLen[n] > runLen[n + 1]) {
+            } else if (n < 0 || runEnd[n] > runEnd[n + 1]) {
                 break; // Invariant is established
             }
             mergeAt(n);
@@ -460,7 +486,7 @@ class TimSortAlterNoComparator<T> {
     private void mergeForceCollapse() {
         while (stackSize > 1) {
             int n = stackSize - 2;
-            if (n > 0 && runLen[n - 1] < runLen[n + 1])
+            if (n > 0 && runEnd[n - 1] < runEnd[n + 1])
                 n--;
             mergeAt(n);
         }
@@ -489,9 +515,9 @@ class TimSortAlterNoComparator<T> {
         assert i == stackSize - 2 || i == stackSize - 3;
 
         int base1 = runBase[i];
-        int len1 = runLen[i];
+        int len1 = runEnd[i];
         int base2 = runBase[i + 1];
-        int len2 = runLen[i + 1];
+        int len2 = runEnd[i + 1];
         assert len1 > 0 && len2 > 0;
         assert base1 + len1 == base2;
 
@@ -500,10 +526,10 @@ class TimSortAlterNoComparator<T> {
          * run now, also slide over the last run (which isn't involved
          * in this merge).  The current run (i+1) goes away in any case.
          */
-        runLen[i] = len1 + len2;
+        runEnd[i] = len1 + len2;
         if (i == stackSize - 3) {
             runBase[i + 1] = runBase[i + 2];
-            runLen[i + 1] = runLen[i + 2];
+            runEnd[i + 1] = runEnd[i + 2];
         }
         stackSize--;
 
