@@ -2,7 +2,7 @@
 
 Current file organisation - Will need to change
 
-Main holds the version of powersort that I made based off Sebastian's code for the purpose of making sure I understand how it works
+Main holds the version of powersort that I made based off Sebastian's code for the purpose of making sure I understand how it works,
 some of it actually uses sebastian's code just with renamed variables to make it easier for me to read and understand. Main also holds the code for running testing
 
 TimSortNoComparator is timsort changed to remove the use of a comparator so it can work on primitive data types. This is currently unstable and doesn't
