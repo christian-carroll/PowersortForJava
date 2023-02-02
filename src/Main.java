@@ -165,6 +165,11 @@ public class Main {
         System.out.println("Timsort no Comparator");
         System.out.println(java.util.Arrays.toString(B));
 
+        int[] work = new int[B.length];
+        TimSortAlterNoComparator.sort(B,0, B.length-1, work, 0, B.length);
+        System.out.println("Timsort altered no Comparator");
+        System.out.println(java.util.Arrays.toString(B));
+
 
         long startTime = System.nanoTime();
         powerSort(A, 0, A.length-1);

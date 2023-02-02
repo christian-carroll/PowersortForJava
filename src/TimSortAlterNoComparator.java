@@ -236,10 +236,10 @@ class TimSortAlterNoComparator<T> {
 
             // If run is short, extend to min(minRun, nRemaining)
             if (runLen < minRun) {
-                int force = nRemaining <= minRun ? nRemaining : minRun;
+                int forcedEnd = nRemaining <= minRun ? nRemaining : minRun;
                 // This will also need to be rewritten to take the start as just lo + runLen
-                binarySort(a, lo, lo + force, lo + runLen + 1);
-                runLen = force;
+                binarySort(a, lo, lo + forcedEnd, lo + runLen + 1);
+                runLen = forcedEnd;
             }
 
             int runPower = nodePower(start, end, prevRunBase, lo, lo + runLen);
@@ -269,9 +269,10 @@ class TimSortAlterNoComparator<T> {
         } while (nRemaining != 0);
 
         // Merge all remaining runs to complete sort
-        assert lo == hi;
-        ts.mergeForceCollapse();
-        assert ts.stackSize == 1;
+        for (int i = ts.stackTop; i > 0; i--) {
+            if (ts.runBase[i] == NULL_INDEX) continue;
+            mergeRuns(a, ts.runBase[i], ts.runEnd[i]+1, prevRunEnd, work);
+        }
     }
 
     /**
