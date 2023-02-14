@@ -85,36 +85,7 @@ class TimSortAlterNoComparator<T> {
      */
     private final int[] a;
 
-    /**
-     * When we get into galloping mode, we stay there until both runs win less
-     * often than MIN_GALLOP consecutive times.
-     */
-    private static final int MIN_GALLOP = 7;
 
-    /**
-     * This controls when we get *into* galloping mode.  It is initialized
-     * to MIN_GALLOP.  The mergeLo and mergeHi methods nudge it higher for
-     * random data, and lower for highly structured data.
-     */
-    private int minGallop = MIN_GALLOP;
-
-    /**
-     * Maximum initial size of tmp array, which is used for merging.  The array
-     * can grow to accommodate demand.
-     * <p>
-     * Unlike Tim's original C version, we do not allocate this much storage
-     * when sorting smaller arrays.  This change was required for performance.
-     */
-    private static final int INITIAL_TMP_STORAGE_LENGTH = 256;
-
-    /**
-     * Temp storage for merges. A workspace array may optionally be
-     * provided in constructor, and if so will be used as long as it
-     * is big enough.
-     */
-    private int[] tmp;
-    private int tmpBase; // base of tmp array slice
-    private int tmpLen;  // length of tmp array slice
 
     /**
      * A stack of pending runs yet to be merged.  Run i starts at
@@ -142,23 +113,7 @@ class TimSortAlterNoComparator<T> {
      */
     private TimSortAlterNoComparator(int[] a, int[] work, int workBase, int workLen) {
         this.a = a;
-
-        // Allocate temp storage (which may be increased later if necessary)
         int len = a.length;
-        int tlen = (len < 2 * INITIAL_TMP_STORAGE_LENGTH) ?
-                len >>> 1 : INITIAL_TMP_STORAGE_LENGTH;
-        if (work == null || workLen < tlen || workBase + tlen > work.length) {
-            @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-            int[] newArray = (int[]) java.lang.reflect.Array.newInstance
-                    (a.getClass().getComponentType(), tlen);
-            tmp = newArray;
-            tmpBase = 0;
-            tmpLen = tlen;
-        } else {
-            tmp = work;
-            tmpBase = workBase;
-            tmpLen = workLen;
-        }
 
         /*
          * Allocate runs-to-be-merged stack (which cannot be expanded).  The

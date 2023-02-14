@@ -147,17 +147,27 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        int arrayLen = 56;
         int[] A = new int[2*(5+3+3+14+1+2)];
         sebsInputs.fillWithUpAndDownRuns(A, Arrays.asList(5, 3, 3, 14, 1, 2),2,new Random());
-        int[] B = new int[2 * (5 + 3 + 3 + 14 + 1 + 2)];
-        sebsInputs.fillWithUpAndDownRuns(B, Arrays.asList(5, 3, 3, 14, 1, 2),2,new Random());
+        int[] B = Arrays.copyOf(A, arrayLen);
+        int[] C = Arrays.copyOf(A, arrayLen);
+        int[] D = Arrays.copyOf(A, arrayLen);
+
+        Integer[] integerA = Arrays.stream( D ).boxed().toArray( Integer[]::new );
 
         class BasicComparator implements Comparator<Integer> {
             public int compare(Integer num1, Integer num2){
                 return num1.compareTo(num2);
             };
-
         }
+
+        Arrays.sort(integerA,0, integerA.length);
+        System.out.println("Timsort");
+        System.out.println(java.util.Arrays.toString(integerA));
+
+
+        // METHODS THAT SORT AN INT ARRAY \/
 
         // This is currently not stable, not sure why as all i did was change all the comparators to equalities signs
         int[] workArray = new int[B.length];
@@ -165,8 +175,8 @@ public class Main {
         System.out.println("Timsort no Comparator");
         System.out.println(java.util.Arrays.toString(B));
 
-        int[] work = new int[B.length];
-        TimSortAlterNoComparator.sort(B,0, B.length-1, work, 0, B.length);
+        int[] work = new int[C.length];
+        TimSortAlterNoComparator.sort(C,0, B.length-1, work, 0, B.length);
         System.out.println("Timsort altered no Comparator");
         System.out.println(java.util.Arrays.toString(B));
 
