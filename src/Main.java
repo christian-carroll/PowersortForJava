@@ -155,6 +155,7 @@ public class Main {
         int[] D = Arrays.copyOf(A, arrayLen);
 
         Integer[] integerA = Arrays.stream( D ).boxed().toArray( Integer[]::new );
+        Integer[] integerB = Arrays.copyOf(integerA, arrayLen);
 
         class BasicComparator implements Comparator<Integer> {
             public int compare(Integer num1, Integer num2){
@@ -165,6 +166,11 @@ public class Main {
         Arrays.sort(integerA,0, integerA.length);
         System.out.println("Timsort");
         System.out.println(java.util.Arrays.toString(integerA));
+
+        Integer[] workArrayB = new Integer[integerB.length];
+        ComparablePowerSort.sort(integerB,0, integerB.length, workArrayB, 0, integerB.length);
+        System.out.println("Comparable Powersort");
+        System.out.println(java.util.Arrays.toString(integerB));
 
 
         // METHODS THAT SORT AN INT ARRAY \/

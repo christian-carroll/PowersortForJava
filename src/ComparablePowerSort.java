@@ -69,6 +69,7 @@ public class ComparablePowerSort {
     private int stackSize = 0;  // Number of pending runs on stack
     private final int[] runBase;
     private final int[] runLen;
+    private final int[] runPower;
 
     /**
      * Creates a TimSort instance to maintain the state of an ongoing sort.
@@ -115,6 +116,7 @@ public class ComparablePowerSort {
                         len < 119151  ? 24 : 49);
         runBase = new int[stackLen];
         runLen = new int[stackLen];
+        runPower= new int[stackLen];
     }
 
     /*
@@ -172,10 +174,14 @@ public class ComparablePowerSort {
             }
 
             int power = nodePower(sortStart, hi, lo, ps.runBase[ps.stackSize], ps.runBase[ps.stackSize] + ps.runLen[ps.stackSize]);
+            while (ps.stackSize > 1 && ps.runPower[ps.runPower.length - 1] > power) {
+                ps.mergeAt(ps.stackSize - 1);
+            }
+            ps.runPower[ps.stackSize] = power;
 
             // Push run onto pending-run stack, and maybe merge
             ps.pushRun(lo, runLen);
-            ps.mergeCollapse();
+            //ps.mergeCollapse();
 
             // Advance to find next run
             lo += runLen;
