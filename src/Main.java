@@ -146,6 +146,19 @@ public class Main {
 
     }
 
+    public static String orderCheck(Object[] array, Comparator cmp) {
+        if (cmp == null) {
+            cmp = Comparator.naturalOrder();
+        };
+        //Ascending
+        for (int i = 1; i < array.length; i++ ) {
+            if (cmp.compare(array[i - 1], array[i]) > 0) {
+                return "Not Sorted";
+            }
+        }
+        return "Sorted";
+    };
+
     public static void main(String[] args) {
         int arrayLen = 56;
         int[] A = new int[2*(5+3+3+14+1+2)];
@@ -153,6 +166,8 @@ public class Main {
         int[] B = Arrays.copyOf(A, arrayLen);
         int[] C = Arrays.copyOf(A, arrayLen);
         int[] D = Arrays.copyOf(A, arrayLen);
+
+        sebsInputs.InputGenerator randRunsGen = sebsInputs.randomRunsGenerator(5);
 
         Integer[] integerA = Arrays.stream( D ).boxed().toArray( Integer[]::new );
         Integer[] integerB = Arrays.copyOf(integerA, arrayLen);
@@ -166,11 +181,13 @@ public class Main {
         Arrays.sort(integerA,0, integerA.length);
         System.out.println("Timsort");
         System.out.println(java.util.Arrays.toString(integerA));
+        System.out.println(orderCheck(integerA, null));
 
         Integer[] workArrayB = new Integer[integerB.length];
         ComparablePowerSort.sort(integerB,0, integerB.length, workArrayB, 0, integerB.length);
         System.out.println("Comparable Powersort");
         System.out.println(java.util.Arrays.toString(integerB));
+        System.out.println(orderCheck(integerB, null));
 
 
         // METHODS THAT SORT AN INT ARRAY \/
