@@ -458,6 +458,7 @@ public class ComparablePowerSort {
         if (i == stackSize - 3) {
             runBase[i + 1] = runBase[i + 2];
             runLen[i + 1] = runLen[i + 2];
+            runPower[i + 1] = runPower[i + 2];
         }
         stackSize--;
 
