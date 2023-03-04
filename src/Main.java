@@ -181,17 +181,20 @@ public class Main {
             };
         }
 
-//        Arrays.sort(integerA,0, integerA.length);
-//        System.out.println("Timsort");
-//        System.out.println(java.util.Arrays.toString(integerA));
-//        System.out.println(orderCheck(integerA, null));
+        Arrays.sort(integerA,0, integerA.length);
+        System.out.println("Timsort");
+        //System.out.println(java.util.Arrays.toString(integerA));
+        System.out.println(orderCheck(integerA, null));
 
         Integer[] workArrayB = new Integer[integerB.length];
         System.out.println(java.util.Arrays.toString(integerB));
         ComparablePowerSort.sort(integerB,0, integerB.length, workArrayB, 0, integerB.length);
         System.out.println("Comparable Powersort");
-        System.out.println(java.util.Arrays.toString(integerB));
-        System.out.println(orderCheck(integerB, null));
+        //System.out.println(java.util.Arrays.toString(integerB));
+        //System.out.println(orderCheck(integerB, null));
+        if (java.util.Arrays.equals(integerA,integerB)) {
+            System.out.println("Sorted the same");
+        }
 
 
         // METHODS THAT SORT AN INT ARRAY \/
