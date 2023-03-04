@@ -1,5 +1,6 @@
 // import jdk.incubator.foreign.SymbolLookup;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Comparator;
@@ -159,8 +160,9 @@ public class Main {
         return "Sorted";
     };
 
-    public static void main(String[] args) {
-        int arrayLen = 56;
+    public static void main(String[] args) throws IOException {
+        //System.in.read();
+        int arrayLen = 10_000_000;
         int[] A = new int[2*(5+3+3+14+1+2)];
         sebsInputs.fillWithUpAndDownRuns(A, Arrays.asList(5, 3, 3, 14, 1, 2),2,new Random());
         int[] B = Arrays.copyOf(A, arrayLen);
@@ -168,8 +170,9 @@ public class Main {
         int[] D = Arrays.copyOf(A, arrayLen);
 
         sebsInputs.InputGenerator randRunsGen = sebsInputs.randomRunsGenerator(5);
+        int[] Origin = randRunsGen.newInstance(arrayLen, new Random());
 
-        Integer[] integerA = Arrays.stream( D ).boxed().toArray( Integer[]::new );
+        Integer[] integerA = Arrays.stream( Origin ).boxed().toArray( Integer[]::new );
         Integer[] integerB = Arrays.copyOf(integerA, arrayLen);
 
         class BasicComparator implements Comparator<Integer> {
@@ -178,12 +181,13 @@ public class Main {
             };
         }
 
-        Arrays.sort(integerA,0, integerA.length);
-        System.out.println("Timsort");
-        System.out.println(java.util.Arrays.toString(integerA));
-        System.out.println(orderCheck(integerA, null));
+//        Arrays.sort(integerA,0, integerA.length);
+//        System.out.println("Timsort");
+//        System.out.println(java.util.Arrays.toString(integerA));
+//        System.out.println(orderCheck(integerA, null));
 
         Integer[] workArrayB = new Integer[integerB.length];
+        System.out.println(java.util.Arrays.toString(integerB));
         ComparablePowerSort.sort(integerB,0, integerB.length, workArrayB, 0, integerB.length);
         System.out.println("Comparable Powersort");
         System.out.println(java.util.Arrays.toString(integerB));
@@ -193,22 +197,22 @@ public class Main {
         // METHODS THAT SORT AN INT ARRAY \/
 
         // This is currently not stable, not sure why as all i did was change all the comparators to equalities signs
-        int[] workArray = new int[B.length];
-        TimSortNoComparator.sort(B,0, B.length-1, workArray, 0, B.length);
-        System.out.println("Timsort no Comparator");
-        System.out.println(java.util.Arrays.toString(B));
-
-        int[] work = new int[C.length];
-        TimSortAlterNoComparator.sort(C,0, B.length-1, work, 0, B.length);
-        System.out.println("Timsort altered no Comparator");
-        System.out.println(java.util.Arrays.toString(B));
-
-
-        long startTime = System.nanoTime();
-        powerSort(A, 0, A.length-1);
-        long PStotalTime = System.nanoTime() - startTime;
-        System.out.println("PowerSort total time: " + PStotalTime);
-        System.out.println(java.util.Arrays.toString(A));
+//        int[] workArray = new int[B.length];
+//        TimSortNoComparator.sort(B,0, B.length-1, workArray, 0, B.length);
+//        System.out.println("Timsort no Comparator");
+//        System.out.println(java.util.Arrays.toString(B));
+//
+//        int[] work = new int[C.length];
+//        TimSortAlterNoComparator.sort(C,0, B.length-1, work, 0, B.length);
+//        System.out.println("Timsort altered no Comparator");
+//        System.out.println(java.util.Arrays.toString(B));
+//
+//
+//        long startTime = System.nanoTime();
+//        powerSort(A, 0, A.length-1);
+//        long PStotalTime = System.nanoTime() - startTime;
+//        System.out.println("PowerSort total time: " + PStotalTime);
+//        System.out.println(java.util.Arrays.toString(A));
 
     }
 }
