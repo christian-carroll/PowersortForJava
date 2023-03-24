@@ -96,18 +96,18 @@ public class sebsInputs {
             };
         }
 
-        /**
-         * Arrays with run lengths given by the R_Tim (Buss and Knop 2018)
-         * sequence of run lengths that cause Timsort to do unbalanced merges.
-         *
-         * All run lengths are multiplied by minRunLen, which should be >= 32.
-         * Rationale: R_Tim contains only lengths {1,2,3}, but
-         * Timsort extends runs below a minimal length to that minimal length.
-         * JDK Timsort uses at most 32 here, see {@link Timsort#minRunLength(int)}.
-         *
-         * Even without explicit extension of runs (as in {@link TimsortStrippedDown},
-         * we always have runs of length >= 2 since descending is also allowed.
-         */
+//        /**
+//         * Arrays with run lengths given by the R_Tim (Buss and Knop 2018)
+//         * sequence of run lengths that cause Timsort to do unbalanced merges.
+//         *
+//         * All run lengths are multiplied by minRunLen, which should be >= 32.
+//         * Rationale: R_Tim contains only lengths {1,2,3}, but
+//         * Timsort extends runs below a minimal length to that minimal length.
+//         * JDK Timsort uses at most 32 here, see {@link Timsort#minRunLength(int)}.
+//         *
+//         * Even without explicit extension of runs (as in {@link TimsortStrippedDown},
+//         * we always have runs of length >= 2 since descending is also allowed.
+//         */
         public static InputGenerator timsortDragGenerator(final int minRunLen) {
             return new InputGenerator() {
 
@@ -222,7 +222,7 @@ public class sebsInputs {
             for (int l : runLengths) {
                 int L = l * runLenFactor;
                 Arrays.sort(A, Math.max(0,i-1), i+L);
-                if (reverse) Main.reverseRange(A, Math.max(0,i-1), i+L-1);
+                if (reverse) myPowersort.reverseRange(A, Math.max(0,i-1), i+L-1);
                 reverse = !reverse;
                 i += L;
             }

@@ -1,179 +1,51 @@
 // import jdk.incubator.foreign.SymbolLookup;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Comparator;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 public class Main {
 
-    private static int nodePower(int left, int right, int startA, int startB, int endB) {
-        int length = (right - left + 1);
-        long l = (long) startA + (long) startB - ((long) left << 1); // 2*middleA
-        long r = (long) startB + (long) endB + 1 - ((long) left << 1); // 2*middleB
-        int a = (int) ((l << 30) / length); // middleA / 2n
-        int b = (int) ((r << 30) / length); // middleB / 2n
-        return Integer.numberOfLeadingZeros(a ^ b);
-    }
-
-    public static void reverseRange(int[] array, int start, int end) {
-        while (start < end) {
-            int temp = array[start];
-            array[start++] = array[end];
-            array[end--] = temp;
-        }
-    }
-
-    private static int findRun(int[] array, int startIndex, int arrayEnd) {
-        // weakly ascending
-        if (array[startIndex+1] >= array[startIndex]) {
-            for (int i = startIndex; i <= arrayEnd; i++) {
-                if (i == arrayEnd) return arrayEnd;
-                if (array[i + 1] < array[i]) return i;
-            }
-        }
-        // strongly descending
-        else {
-            for (int i = startIndex; i <= arrayEnd; i++) {
-                if (i == arrayEnd) return arrayEnd;
-                if (array[i + 1] >= array[i]) {
-                    reverseRange(array, startIndex, i);
-                    return i;
-                }
-            }
-        }
-        //shouldn't be reached but if so then give a run of 1
-        return startIndex;
-    }
-
-    //as these runs are different from the A and B runs in the main powersort loop they will be X and Y
-    private static void mergeRuns(int[] array, int startX, int startY, int endY, int[] temp) {
-        // Form a bitonic sequence by putting the first run into the temp array in order, then the second run in reverse
-        //so that the result is an array where it first has an increasing run then a decreasing run
-        int i, j;
-        for(i = startX; i < startY; i++) temp[i] = array[i];
-        for (j = startY; j <= endY; j++) temp[j] = array[endY+startY-j];
-        i = startX; j = endY;
-        for (int k = startX; k <= endY; k++) {
-            array[k] = temp[j] < temp[i] ? temp[j--] : temp[i++];
-        }
-        //could use an array copy but would lack the i and j for later
-        //loop array backwards and copy it forward?
-        // as java is pass by value, could use startX and endY in the final iteration, but it alters the values passed to it?
-    }
-
-    /**
-     * Merge from Seb Wild's java implementation but with the variable renamed to be more readable for me
-     * Merges runs A[l..m-1] and A[m..r] in-place into A[l..r]
-     * with Sedgewick's bitonic merge (Program 8.2 in Algorithms in C++)
-     * using B as temporary storage.
-     * B.length must be at least r+1.
-     */
-    public static void sebMergeRunsRename(int[] A, int startX, int startY, int endY, int[] B) {
-        --startY;// mismatch in convention with Sedgewick
-        int i, j;
-        assert B.length >= endY+1;
-        for (i = startY+1; i > startX; --i) B[i-1] = A[i-1];
-        for (j = startY; j < endY; ++j) B[endY+startY-j] = A[j+1];
-        for (int k = startX; k <= endY; ++k) {
-            A[k] = B[j] < B[i] ? B[j--] : B[i++];
-        }
-    }
-
-    // seb's insertion sort just renamed for my ease of reading
-        public static void insertionsort(int[] array, int left, int right) {
-            for (int i = left + 1; i <= right; ++i) {
-                int j = i-1;
-                final int currentValue = array[i];
-                while (currentValue < array[j]) {
-                    array[j+1] = array[j]; --j;
-                    if (j < left) break;
-                }
-                array[j+1] = currentValue;
-            }
-        }
-
-
-        public static int log2(int n) {
-        if(n == 0) throw new IllegalArgumentException("lg(0) undefined");
-        return 31 - Integer.numberOfLeadingZeros( n );
-    }
-    static int NULL_INDEX = Integer.MIN_VALUE;
-    static int minRunLength = 3;
-
-    public static void powerSort(int [] input, int left, int right) {
-        int length = (right - left) + 1;
-        int lgnPlus2 = log2(length);
-        int[] runStartStack = new int[lgnPlus2], runEndStack = new int[lgnPlus2];
-        Arrays.fill(runStartStack,NULL_INDEX);
-        int topOfStack = 0;
-        int[] buffer = new int[length];
-
-        int startA = left;
-        int endA = findRun(input, startA, right);
-        if ((endA - startA) + 1 < minRunLength) {
-            endA = Math.min(startA + minRunLength, right);
-            insertionsort(input, startA, endA);
-        }
-        while (endA < right) {
-            int startB = endA + 1;
-            int endB = findRun(input, startB, right);
-            if ((endB - startB) + 1 < minRunLength) {
-                endB = Math.min(startB + minRunLength, right);
-                insertionsort(input, startB, endB);
-            }
-            int runPower = nodePower(left, right, startA, startB, endB);
-            for (int i = topOfStack; i > runPower; i--) {
-                if (runStartStack[i] == NULL_INDEX) continue;
-
-                // For when I forget again, In this one we are passing endA as the endY parameter because we are merging run A if possible, not B
-                // We couldn't merge B as we don't know its node power yet as we have to discover the next run for that
-                mergeRuns(input, runStartStack[i], runEndStack[i]+1, endA, buffer);
-                startA = runStartStack[i];
-                runStartStack[i] = NULL_INDEX;
-            }
-            runStartStack[runPower] = startA;
-            runEndStack[runPower] = endA;
-            topOfStack = runPower;
-            startA = startB;
-            endA = endB;
-        }
-        // merge down
-        for (int i = topOfStack; i > 0; i--) {
-            if (runStartStack[i] == NULL_INDEX) continue;
-            mergeRuns(input, runStartStack[i], runEndStack[i]+1, endA, buffer);
-        }
-
-    }
-
-    public static String orderCheck(Object[] array, Comparator cmp) {
+    public static Boolean isSorted(Object[] array, Comparator cmp) {
         if (cmp == null) {
             cmp = Comparator.naturalOrder();
         };
         //Ascending
         for (int i = 1; i < array.length; i++ ) {
             if (cmp.compare(array[i - 1], array[i]) > 0) {
-                return "Not Sorted";
+                System.out.println("The offending pair " + array[i - 1] + " " + array[i]);
+                return false;
             }
         }
-        return "Sorted";
+        return true;
     };
+
+    public static boolean ABORT_IF_RESULT_IS_NOT_SORTED = true;
+    public static boolean COUNT_MERGE_COSTS = false;
 
     public static void main(String[] args) throws IOException {
         //System.in.read();
-        int arrayLen = 10_000_000;
-        int[] A = new int[2*(5+3+3+14+1+2)];
-        sebsInputs.fillWithUpAndDownRuns(A, Arrays.asList(5, 3, 3, 14, 1, 2),2,new Random());
-        int[] B = Arrays.copyOf(A, arrayLen);
-        int[] C = Arrays.copyOf(A, arrayLen);
-        int[] D = Arrays.copyOf(A, arrayLen);
+        long seed = 42424242;
+        int warmupRounds = 12_000;
+        List<Integer> sizes = Arrays.asList(100_000);
+        int reps = 100;
 
-        sebsInputs.InputGenerator randRunsGen = sebsInputs.randomRunsGenerator(5);
-        int[] Origin = randRunsGen.newInstance(arrayLen, new Random());
+        sebsInputs.InputGenerator inputs = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;
 
-        Integer[] integerA = Arrays.stream( Origin ).boxed().toArray( Integer[]::new );
-        Integer[] integerB = Arrays.copyOf(integerA, arrayLen);
+
+//        int[] A = new int[2*(5+3+3+14+1+2)];
+//        sebsInputs.fillWithUpAndDownRuns(A, Arrays.asList(5, 3, 3, 14, 1, 2),2,new Random());
+//        int[] B = Arrays.copyOf(A, arrayLen);
+//
+//        sebsInputs.InputGenerator randRunsGen = sebsInputs.randomRunsGenerator(5);
+//        int[] Origin = randRunsGen.newInstance(arrayLen, new Random());
+//
+//        Integer[] integerA = Arrays.stream( Origin ).boxed().toArray( Integer[]::new );
+//        Integer[] integerB = Arrays.copyOf(integerA, arrayLen);
 
         class BasicComparator implements Comparator<Integer> {
             public int compare(Integer num1, Integer num2){
@@ -181,21 +53,79 @@ public class Main {
             };
         }
 
-        Arrays.sort(integerA,0, integerA.length);
-        System.out.println("Timsort");
-        //System.out.println(java.util.Arrays.toString(integerA));
-        System.out.println(orderCheck(integerA, null));
+        final String algoName = "Powersort";
 
-        Integer[] workArrayB = new Integer[integerB.length];
-        System.out.println(java.util.Arrays.toString(integerB));
-        ComparablePowerSort.sort(integerB,0, integerB.length, workArrayB, 0, integerB.length);
-        System.out.println("Comparable Powersort");
-        //System.out.println(java.util.Arrays.toString(integerB));
-        //System.out.println(orderCheck(integerB, null));
-        if (java.util.Arrays.equals(integerA,integerB)) {
-            System.out.println("Sorted the same");
+        String outdirect = "/Users/ChristianCarroll/Documents/Uni_final_year/Dissertation/PowerSort/Powersort_project/Output/";
+        String fileName = "SortTime";
+
+        SimpleDateFormat format = new SimpleDateFormat("-yyyy-MM-dd_HH-mm-ss");
+        fileName += format.format(new Date());
+        fileName += "-reps" + reps;
+        fileName += "-ns";
+        for (int n : sizes) fileName += "-" + n;
+        fileName += "-seed" + seed;
+        fileName += ".csv";
+        String outFileName = outdirect + fileName;
+
+        File outFile = new File(outFileName);
+
+        BufferedWriter out = new BufferedWriter(new FileWriter(outFile));
+
+        System.out.println("Doing warmup (" + warmupRounds + " rounds)");
+        Random random = new Random(seed);
+        for (int r = 0; r < warmupRounds; ++r) {
+                for (final int size : new int[]{10000, 1000, 1000}) {
+                    final int[] intWarm = inputs.next(size, random, null);
+                    final Integer[] warmup = Arrays.stream( intWarm ).boxed().toArray( Integer[]::new );
+                    ComparablePowerSort.sort(warmup,0,size-1, null, 0, 0);
+                    //Arrays.sort(warmup, 0, size-1);
+                }
+        }
+        System.out.println("Warmup finished!\n");
+
+        if (COUNT_MERGE_COSTS) {
+            out.write("algorithm,ms,n,input,input-num,merge-cost\n");
+            System.out.println("Also counting merge cost in MergeUtil.mergeRuns");
+        } else {
+            out.write("algorithm,ms,n,input,input-num\n");
+            System.out.println("Not counting merge costs.");
         }
 
+        System.out.println("\nRuns with individual timing (skips first run):");
+        random = new Random(seed);
+        for (final int size : sizes) {
+            int total = 0;
+            int[] A = inputs.next(size, random, null);
+            Integer[] integerA = Arrays.stream( A ).boxed().toArray( Integer[]::new );
+            for (int r = 0; r < reps; ++r) {
+                if (r != 0) {
+                    A = inputs.next(size, random, A);
+                    integerA = Arrays.stream( A ).boxed().toArray( Integer[]::new );
+                }
+                ComparablePowerSort.totalMergeCosts = 0;
+                final long startNanos = System.nanoTime();
+                //Arrays.sort(integerA, 0, size-1);
+                ComparablePowerSort.sort(integerA,0,size-1, null, 0, 0);
+                final long endNanos = System.nanoTime();
+                total += integerA[integerA.length/2];
+                if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(integerA, null)) {
+                    System.err.println("RESULT NOT SORTED!");
+                    System.exit(3);
+                }
+                final double msDiff = (endNanos - startNanos) / 1e6;
+                if (r != 0) {
+                    // Skip first iteration, often slower!
+                    if (COUNT_MERGE_COSTS)
+                        out.write(algoName+","+msDiff+","+size+","+inputs+","+r +","+ ComparablePowerSort.totalMergeCosts+"\n");
+                    else
+                        out.write(algoName+","+msDiff+","+size+","+inputs+","+r + "\n");
+                    out.flush();
+                }
+            }
+            out.write("#finished: " + format.format(new Date()) + "\n");
+            out.close();
+            //System.out.println("avg-ms=" + (float) (samples.mean()) + ",\t algo=" + algoName + ", n=" + size + "     (" + total+")\t" + samples);
+        }
 
         // METHODS THAT SORT AN INT ARRAY \/
 
