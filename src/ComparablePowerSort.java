@@ -172,7 +172,7 @@ public class ComparablePowerSort {
         int minRun = minRunLength(nRemaining);
 
         int runLen = countRunAndMakeAscending(a, lo, hi);
-        System.out.println("Stack size " + ps.stackSize);
+//        System.out.println("Stack size " + ps.stackSize);
 
         // If run is short, extend to min(minRun, nRemaining)
         if (runLen < minRun) {
@@ -190,7 +190,7 @@ public class ComparablePowerSort {
         do {
             // Identify next run
             runLen = countRunAndMakeAscending(a, lo, hi);
-            System.out.println("Stack size " + ps.stackSize);
+//            System.out.println("Stack size " + ps.stackSize);
 
             // If run is short, extend to min(minRun, nRemaining)
             if (runLen < minRun) {
@@ -199,11 +199,11 @@ public class ComparablePowerSort {
                 runLen = force;
             }
 
-            int power = nodePower(sortStart, hi, lo, ps.runBase[ps.stackSize - 1], ps.runBase[ps.stackSize - 1] + ps.runLen[ps.stackSize - 1]);
-            System.out.println("New power " + power);
-            System.out.println(java.util.Arrays.toString(ps.runPower));
+            int power = nodePower(sortStart, hi, ps.runBase[ps.stackSize - 1], lo, lo + runLen);
+//            System.out.println("New power " + power);
+//            System.out.println(java.util.Arrays.toString(ps.runPower));
             while (ps.stackSize > 1 && ps.runPower[ps.stackSize - 2] > power) {
-                System.out.println("merging");
+//                System.out.println("merging");
                 ps.mergeAt(ps.stackSize - 2);
             }
             ps.runPower[ps.stackSize - 1] = power;
