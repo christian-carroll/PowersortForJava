@@ -33,19 +33,9 @@ public class Main {
         int warmupRounds = 12_000;
         List<Integer> sizes = Arrays.asList(1_000_000);
         int reps = 100;
+        double[] msTimes = new double[reps];
 
         sebsInputs.InputGenerator inputs = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;
-
-
-//        int[] A = new int[2*(5+3+3+14+1+2)];
-//        sebsInputs.fillWithUpAndDownRuns(A, Arrays.asList(5, 3, 3, 14, 1, 2),2,new Random());
-//        int[] B = Arrays.copyOf(A, arrayLen);
-//
-//        sebsInputs.InputGenerator randRunsGen = sebsInputs.randomRunsGenerator(5);
-//        int[] Origin = randRunsGen.newInstance(arrayLen, new Random());
-//
-//        Integer[] integerA = Arrays.stream( Origin ).boxed().toArray( Integer[]::new );
-//        Integer[] integerB = Arrays.copyOf(integerA, arrayLen);
 
         class BasicComparator implements Comparator<Integer> {
             public int compare(Integer num1, Integer num2){
@@ -113,6 +103,7 @@ public class Main {
                     System.exit(3);
                 }
                 final double msDiff = (endNanos - startNanos) / 1e6;
+                msTimes[r] = msDiff;
                 if (r != 0) {
                     // Skip first iteration, often slower!
                     if (COUNT_MERGE_COSTS)
@@ -122,7 +113,9 @@ public class Main {
                     out.flush();
                 }
             }
-            out.write("#finished: " + format.format(new Date()) + "\n");
+            double averageMs = Arrays.stream(msTimes).average().orElse(Double.NaN);
+            System.out.println("Average time: " + averageMs);
+            out.write("#finished: " + format.format(new Date()) + " Average ms: " + averageMs + "\n");
             out.close();
             //System.out.println("avg-ms=" + (float) (samples.mean()) + ",\t algo=" + algoName + ", n=" + size + "     (" + total+")\t" + samples);
         }
