@@ -30,8 +30,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
         //System.in.read();
         long seed = 42424242;
-        int warmupRounds = 12_000;
-        List<Integer> sizes = Arrays.asList(100_000);
+        int warmupRounds = 0;
+        List<Integer> sizes = Arrays.asList(1_000_000);
         int reps = 100;
 
         sebsInputs.InputGenerator inputs = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;

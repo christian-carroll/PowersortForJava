@@ -1,3 +1,4 @@
+import java.io.IOException;
 
 public class ComparablePowerSort {
 
@@ -56,6 +57,11 @@ public class ComparablePowerSort {
     private int tmpBase; // base of tmp array slice
     private int tmpLen;  // length of tmp array slice
 
+    public static int log2(int n) {
+        if(n == 0) throw new IllegalArgumentException("lg(0) undefined");
+        return 31 - Integer.numberOfLeadingZeros( n );
+    }
+
     /**
      * A stack of pending runs yet to be merged.  Run i starts at
      * address base[i] and extends for len[i] elements.  It's always
@@ -113,9 +119,7 @@ public class ComparablePowerSort {
          * increasing scenario. More explanations are given in section 4 of:
          * http://envisage-project.eu/wp-content/uploads/2015/02/sorting.pdf
          */
-        int stackLen = (len <    120  ?  5 :
-                len <   1542  ? 10 :
-                        len < 119151  ? 24 : 49);
+        int stackLen = log2(len) + 2;
         runBase = new int[stackLen];
         runLen = new int[stackLen];
         runPower= new int[stackLen];
@@ -141,7 +145,7 @@ public class ComparablePowerSort {
      * @param workLen usable size of work array
      * @since 1.8
      */
-    static void sort(Object[] a, int lo, int hi, Object[] work, int workBase, int workLen) {
+    static void sort(Object[] a, int lo, int hi, Object[] work, int workBase, int workLen) throws IOException {
         assert a != null && lo >= 0 && lo <= hi && hi <= a.length;
 
         int nRemaining  = hi - lo;
@@ -181,6 +185,7 @@ public class ComparablePowerSort {
         // Advance to find next run
         lo += runLen;
         nRemaining -= runLen;
+        int repitiions = 0;
 
         do {
             // Identify next run
@@ -197,11 +202,11 @@ public class ComparablePowerSort {
             int power = nodePower(sortStart, hi, lo, ps.runBase[ps.stackSize - 1], ps.runBase[ps.stackSize - 1] + ps.runLen[ps.stackSize - 1]);
             System.out.println("New power " + power);
             System.out.println(java.util.Arrays.toString(ps.runPower));
-            while (ps.stackSize >= 1 && ps.runPower[ps.stackSize - 1] > power) {
+            while (ps.stackSize > 1 && ps.runPower[ps.stackSize - 2] > power) {
                 System.out.println("merging");
                 ps.mergeAt(ps.stackSize - 2);
             }
-            ps.runPower[ps.stackSize] = power;
+            ps.runPower[ps.stackSize - 1] = power;
 
             // Push run onto pending-run stack, and maybe merge
             ps.pushRun(lo, runLen);
@@ -210,6 +215,7 @@ public class ComparablePowerSort {
             // Advance to find next run
             lo += runLen;
             nRemaining -= runLen;
+
         } while (nRemaining != 0);
 
         // Merge all remaining runs to complete sort
@@ -378,7 +384,6 @@ public class ComparablePowerSort {
 
     /**
      * Pushes the specified run onto the pending-run stack.
-     *
      * @param runBase index of the first element in the run
      * @param runLen  the number of elements in the run
      */
