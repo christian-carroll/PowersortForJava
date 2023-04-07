@@ -37,12 +37,6 @@ public class Main {
 
         sebsInputs.InputGenerator inputs = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;
 
-        class BasicComparator implements Comparator<Integer> {
-            public int compare(Integer num1, Integer num2){
-                return num1.compareTo(num2);
-            };
-        }
-
         final String algoName = "Powersort";
 
         String outdirect = "/Users/ChristianCarroll/Documents/Uni_final_year/Dissertation/PowerSort/Powersort_project/Output/";
@@ -119,26 +113,5 @@ public class Main {
             out.close();
             //System.out.println("avg-ms=" + (float) (samples.mean()) + ",\t algo=" + algoName + ", n=" + size + "     (" + total+")\t" + samples);
         }
-
-        // METHODS THAT SORT AN INT ARRAY \/
-
-        // This is currently not stable, not sure why as all i did was change all the comparators to equalities signs
-//        int[] workArray = new int[B.length];
-//        TimSortNoComparator.sort(B,0, B.length-1, workArray, 0, B.length);
-//        System.out.println("Timsort no Comparator");
-//        System.out.println(java.util.Arrays.toString(B));
-//
-//        int[] work = new int[C.length];
-//        TimSortAlterNoComparator.sort(C,0, B.length-1, work, 0, B.length);
-//        System.out.println("Timsort altered no Comparator");
-//        System.out.println(java.util.Arrays.toString(B));
-//
-//
-//        long startTime = System.nanoTime();
-//        powerSort(A, 0, A.length-1);
-//        long PStotalTime = System.nanoTime() - startTime;
-//        System.out.println("PowerSort total time: " + PStotalTime);
-//        System.out.println(java.util.Arrays.toString(A));
-
     }
 }
