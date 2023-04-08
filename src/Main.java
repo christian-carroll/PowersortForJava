@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-
 public class Main {
 
     public static Boolean isSorted(Object[] array, Comparator cmp) {
@@ -34,8 +33,10 @@ public class Main {
         List<Integer> sizes = Arrays.asList(1_000_000);
         int reps = 100;
         double[] msTimes = new double[reps];
+        int inputRunLength = 10;
 
-        sebsInputs.InputGenerator inputs = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;
+        sebsInputs.InputGenerator[] inputTypes = {sebsInputs.RANDOM_PERMUTATIONS_GENERATOR, sebsInputs.randomRunsGenerator(inputRunLength)};
+        sebsInputs.InputGenerator warmupInput = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;
 
         final String algoName = "Powersort";
 
@@ -59,7 +60,7 @@ public class Main {
         Random random = new Random(seed);
         for (int r = 0; r < warmupRounds; ++r) {
                 for (final int size : new int[]{10000, 1000, 1000}) {
-                    final int[] intWarm = inputs.next(size, random, null);
+                    final int[] intWarm = warmupInput.next(size, random, null);
                     final Integer[] warmup = Arrays.stream( intWarm ).boxed().toArray( Integer[]::new );
                     ComparablePowerSort.sort(warmup,0,size, null, 0, 0);
                     //Arrays.sort(warmup, 0, size);
@@ -77,41 +78,46 @@ public class Main {
 
         System.out.println("\nRuns with individual timing (skips first run):");
         random = new Random(seed);
-        for (final int size : sizes) {
-            int total = 0;
-            int[] A = inputs.next(size, random, null);
-            Integer[] integerA = Arrays.stream( A ).boxed().toArray( Integer[]::new );
-            for (int r = 0; r < reps; ++r) {
-                if (r != 0) {
-                    A = inputs.next(size, random, A);
-                    integerA = Arrays.stream( A ).boxed().toArray( Integer[]::new );
+        for (sebsInputs.InputGenerator input : inputTypes) {
+            for (final int size : sizes) {
+                int total = 0;
+                int[] A = input.next(size, random, null);
+                Integer[] integerA = Arrays.stream(A).boxed().toArray(Integer[]::new);
+                for (int r = 0; r < reps; ++r) {
+                    if (r != 0) {
+                        A = input.next(size, random, A);
+                        integerA = Arrays.stream(A).boxed().toArray(Integer[]::new);
+                    }
+                    ComparablePowerSort.totalMergeCosts = 0;
+                    final long startNanos = System.nanoTime();
+                    //Arrays.sort(integerA, 0, size);
+                    ComparablePowerSort.sort(integerA,0,size, null, 0, 0);
+                    final long endNanos = System.nanoTime();
+                    total += integerA[integerA.length / 2];
+                    if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(integerA, null)) {
+                        System.err.println("RESULT NOT SORTED!");
+                        System.exit(3);
+                    }
+                    final double msDiff = (endNanos - startNanos) / 1e6;
+                    msTimes[r] = msDiff;
+                    if (r != 0) {
+                        // Skip first iteration, often slower!
+                        if (COUNT_MERGE_COSTS)
+                            out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "," + ComparablePowerSort.totalMergeCosts + "\n");
+                        else
+                            out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "\n");
+                        out.flush();
+                    }
                 }
-                ComparablePowerSort.totalMergeCosts = 0;
-                final long startNanos = System.nanoTime();
-                //Arrays.sort(integerA, 0, size);
-                ComparablePowerSort.sort(integerA,0,size, null, 0, 0);
-                final long endNanos = System.nanoTime();
-                total += integerA[integerA.length/2];
-                if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(integerA, null)) {
-                    System.err.println("RESULT NOT SORTED!");
-                    System.exit(3);
-                }
-                final double msDiff = (endNanos - startNanos) / 1e6;
-                msTimes[r] = msDiff;
-                if (r != 0) {
-                    // Skip first iteration, often slower!
-                    if (COUNT_MERGE_COSTS)
-                        out.write(algoName+","+msDiff+","+size+","+inputs+","+r +","+ ComparablePowerSort.totalMergeCosts+"\n");
-                    else
-                        out.write(algoName+","+msDiff+","+size+","+inputs+","+r + "\n");
-                    out.flush();
-                }
+                double averageMs = Arrays.stream(msTimes).average().orElse(Double.NaN);
+                double minMS = Arrays.stream(msTimes).min().getAsDouble();
+                System.out.println("Average time: " + averageMs);
+                System.out.println("Fastest time: " + minMS);
+                out.write("Finished input type: " + input + " Average ms: " + averageMs + "Fastest time (ms): " + minMS + "\n");
+                //System.out.println("avg-ms=" + (float) (samples.mean()) + ",\t algo=" + algoName + ", n=" + size + "     (" + total+")\t" + samples);
             }
-            double averageMs = Arrays.stream(msTimes).average().orElse(Double.NaN);
-            System.out.println("Average time: " + averageMs);
-            out.write("#finished: " + format.format(new Date()) + " Average ms: " + averageMs + "\n");
-            out.close();
-            //System.out.println("avg-ms=" + (float) (samples.mean()) + ",\t algo=" + algoName + ", n=" + size + "     (" + total+")\t" + samples);
         }
+        out.write("#finished: " + format.format(new Date()) + "\n");
+        out.close();
     }
 }
