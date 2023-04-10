@@ -29,16 +29,16 @@ public class Main {
     public static void main(String[] args) throws IOException {
         //System.in.read();
         long seed = 42424242;
-        int warmupRounds = 12_000;
+        int warmupRounds = 10_000;
         List<Integer> sizes = Arrays.asList(1_000_000);
         int reps = 100;
         double[] msTimes = new double[reps];
-        int inputRunLength = 10;
+        int inputRunLength = 20;
 
         sebsInputs.InputGenerator[] inputTypes = {sebsInputs.RANDOM_PERMUTATIONS_GENERATOR, sebsInputs.randomRunsGenerator(inputRunLength)};
         sebsInputs.InputGenerator warmupInput = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;
 
-        final String algoName = "Powersort";
+        final String algoName = "Timsort";
 
         String outdirect = "/Users/ChristianCarroll/Documents/Uni_final_year/Dissertation/PowerSort/Powersort_project/Output/";
         String fileName = algoName;
@@ -62,8 +62,8 @@ public class Main {
                 for (final int size : new int[]{10000, 1000, 1000}) {
                     final int[] intWarm = warmupInput.next(size, random, null);
                     final Integer[] warmup = Arrays.stream( intWarm ).boxed().toArray( Integer[]::new );
-                    ComparablePowerSort.sort(warmup,0,size, null, 0, 0);
-                    //Arrays.sort(warmup, 0, size);
+                    //ComparablePowerSort.sort(warmup,0,size, null, 0, 0);
+                    Arrays.sort(warmup, 0, size);
                 }
         }
         System.out.println("Warmup finished!\n");
@@ -90,8 +90,8 @@ public class Main {
                     }
                     ComparablePowerSort.totalMergeCosts = 0;
                     final long startNanos = System.nanoTime();
-                    //Arrays.sort(integerA, 0, size);
-                    ComparablePowerSort.sort(integerA,0,size, null, 0, 0);
+                    Arrays.sort(integerA, 0, size);
+                    //ComparablePowerSort.sort(integerA,0,size, null, 0, 0);
                     final long endNanos = System.nanoTime();
                     total += integerA[integerA.length / 2];
                     if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(integerA, null)) {
@@ -111,9 +111,11 @@ public class Main {
                 }
                 double averageMs = Arrays.stream(msTimes).average().orElse(Double.NaN);
                 double minMS = Arrays.stream(msTimes).min().getAsDouble();
+                double maxMS = Arrays.stream(msTimes).max().getAsDouble();
                 System.out.println("Average time: " + averageMs);
                 System.out.println("Fastest time: " + minMS);
-                out.write("Finished input type: " + input + " Average ms: " + averageMs + "Fastest time (ms): " + minMS + "\n");
+                System.out.println("Slowest time: " + maxMS);
+                out.write("Finished input type: " + input + " Average ms: " + averageMs + " Fastest time (ms): " + minMS + " Slowest time (ms): " + maxMS + "\n");
                 //System.out.println("avg-ms=" + (float) (samples.mean()) + ",\t algo=" + algoName + ", n=" + size + "     (" + total+")\t" + samples);
             }
         }
