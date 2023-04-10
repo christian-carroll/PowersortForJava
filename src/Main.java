@@ -41,7 +41,7 @@ public class Main {
         final String algoName = "Powersort";
 
         String outdirect = "/Users/ChristianCarroll/Documents/Uni_final_year/Dissertation/PowerSort/Powersort_project/Output/";
-        String fileName = "SortTime";
+        String fileName = algoName;
 
         SimpleDateFormat format = new SimpleDateFormat("-yyyy-MM-dd_HH-mm-ss");
         fileName += format.format(new Date());
