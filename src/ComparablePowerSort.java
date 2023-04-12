@@ -77,6 +77,7 @@ public class ComparablePowerSort {
     private final int[] runLen;
     private final int[] runPower;
     public static long totalMergeCosts = 0;
+    public static long totalComparisonCosts = 0;
 
 
     /**
@@ -185,7 +186,6 @@ public class ComparablePowerSort {
         // Advance to find next run
         lo += runLen;
         nRemaining -= runLen;
-        int repitiions = 0;
 
         do {
             // Identify next run
@@ -269,8 +269,9 @@ public class ComparablePowerSort {
              */
             while (left < right) {
                 int mid = (left + right) >>> 1;
-                if (pivot.compareTo(a[mid]) < 0)
+                if (pivot.compareTo(a[mid]) < 0) {
                     right = mid;
+                }
                 else
                     left = mid + 1;
             }
@@ -328,12 +329,14 @@ public class ComparablePowerSort {
 
         // Find end of run, and reverse range if descending
         if (((Comparable) a[runHi++]).compareTo(a[lo]) < 0) { // Descending
-            while (runHi < hi && ((Comparable) a[runHi]).compareTo(a[runHi - 1]) < 0)
+            while (runHi < hi && ((Comparable) a[runHi]).compareTo(a[runHi - 1]) < 0) {
                 runHi++;
+            }
             reverseRange(a, lo, runHi);
         } else {                              // Ascending
-            while (runHi < hi && ((Comparable) a[runHi]).compareTo(a[runHi - 1]) >= 0)
+            while (runHi < hi && ((Comparable) a[runHi]).compareTo(a[runHi - 1]) >= 0) {
                 runHi++;
+            }
         }
 
         return runHi - lo;
@@ -565,8 +568,9 @@ public class ComparablePowerSort {
         while (lastOfs < ofs) {
             int m = lastOfs + ((ofs - lastOfs) >>> 1);
 
-            if (key.compareTo(a[base + m]) > 0)
+            if (key.compareTo(a[base + m]) > 0) {
                 lastOfs = m + 1;  // a[base + m] < key
+            }
             else
                 ofs = m;          // key <= a[base + m]
         }
