@@ -38,7 +38,7 @@ public class Main {
         sebsInputs.InputGenerator[] inputTypes = {sebsInputs.RANDOM_PERMUTATIONS_GENERATOR, sebsInputs.randomRunsGenerator(inputRunLength)};
         sebsInputs.InputGenerator warmupInput = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;
 
-        final String algoName = "Powersort+costs";
+        final String algoName = "Timsort+costs";
 
         String outdirect = "/Users/ChristianCarroll/Documents/Uni_final_year/Dissertation/PowerSort/Powersort_project/Output/";
         String fileName = algoName;
@@ -96,10 +96,10 @@ public class Main {
                     ComparablePowerSort.totalMergeCosts = 0;
                     ComparablePowerSort.totalComparisonCosts = 0;
                     final long startNanos = System.nanoTime();
-                    Arrays.sort(integerA, 0, size);
+                    Arrays.sort(compareA, 0, size);
                     //ComparablePowerSort.sort(compareA,0,size, null, 0, 0);
                     final long endNanos = System.nanoTime();
-                    if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(integerA, null)) {
+                    if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(compareA, null)) {
                         System.err.println("RESULT NOT SORTED!");
                         System.exit(3);
                     }
