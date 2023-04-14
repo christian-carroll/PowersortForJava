@@ -35,10 +35,10 @@ public class Main {
         double[] msTimes = new double[reps];
         int inputRunLength = 1000;
 
-        sebsInputs.InputGenerator[] inputTypes = {sebsInputs.RANDOM_PERMUTATIONS_GENERATOR, sebsInputs.randomRunsGenerator(inputRunLength)};
-        sebsInputs.InputGenerator warmupInput = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;
+        Inputs.InputGenerator[] inputTypes = {Inputs.RANDOM_PERMUTATIONS_GENERATOR, Inputs.randomRunsGenerator(inputRunLength), Inputs.timsortDragGenerator(32)};
+        Inputs.InputGenerator warmupInput = Inputs.RANDOM_PERMUTATIONS_GENERATOR;
 
-        final String algoName = "Timsort+costs";
+        final String algoName = "Timsort";
 
         String outdirect = "/Users/ChristianCarroll/Documents/Uni_final_year/Dissertation/PowerSort/Powersort_project/Output/";
         String fileName = algoName;
@@ -78,7 +78,7 @@ public class Main {
 
         System.out.println("\nRuns with individual timing (skips first run):");
         random = new Random(seed);
-        for (sebsInputs.InputGenerator input : inputTypes) {
+        for (Inputs.InputGenerator input : inputTypes) {
             for (final int size : sizes) {
                 int[] A = input.next(size, random, null);
                 ComparInteger[] compareA = new ComparInteger[size];

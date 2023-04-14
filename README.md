@@ -13,7 +13,7 @@ it's as similar as possible to the current standard then it could be good.
 
 TimSortAlterNoComparator is the same idea as TimSortAlter but again to work with primitive data types. CURRENT WIP
 
-sebsInputs is just the input file taken from Sebastian's java implementation, currently in use for generating the testing data 
+Inputs is just the input file taken from Sebastian's java implementation, currently in use for generating the testing data 
 
 TimSort - it's timsort
 

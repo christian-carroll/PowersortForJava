@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ComparablePowerSort {
 
@@ -438,6 +440,30 @@ public class ComparablePowerSort {
             mergeAt(n);
         }
     }
+
+    private void mergeAtNew(int i) {
+        assert stackSize >= 2;
+        assert i >= 0;
+        assert i == stackSize - 2 || i == stackSize - 3;
+
+        int base1 = runBase[i];
+        int len1 = runLen[i];
+        int base2 = runBase[i + 1];
+        int len2 = runLen[i + 1];
+        assert len1 > 0 && len2 > 0;
+        assert base1 + len1 == base2;
+        totalMergeCosts += (len1 + len2);
+
+
+
+//        Map<Integer,Boolean> mp = new TreeMap<Integer,Boolean>();
+//
+//        for (int j = base1; j < base1 + len1; j++ ) {
+//
+//        }
+
+    }
+
 
     /**
      * Merges the two runs at stack indices i and i+1.  Run i must be

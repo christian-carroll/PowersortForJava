@@ -5,7 +5,7 @@ import java.util.Random;
 
 
 
-public class sebsInputs {
+public class Inputs {
 
     /**
      * Methods to create (random) inputs.

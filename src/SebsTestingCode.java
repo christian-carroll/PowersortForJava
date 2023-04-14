@@ -75,17 +75,17 @@ public class Mergesorts {
             seed = Long.parseLong(args[2]);
         }
 
-        sebsInputs.InputGenerator inputs = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;
+        Inputs.InputGenerator inputs = Inputs.RANDOM_PERMUTATIONS_GENERATOR;
         if (args.length >= 4) {
             if (args[3].equalsIgnoreCase("rp"))
-                inputs = sebsInputs.RANDOM_PERMUTATIONS_GENERATOR;
+                inputs = Inputs.RANDOM_PERMUTATIONS_GENERATOR;
             if (args[3].startsWith("runs"))
-                inputs = sebsInputs.randomRunsGenerator(Integer.parseInt(
+                inputs = Inputs.randomRunsGenerator(Integer.parseInt(
                         args[3].substring(4).replaceAll("\\D","")));
             if (args[3].startsWith("iid"))
-                inputs = sebsInputs.randomIidIntsGenerator(Integer.parseInt(args[3].substring(3)));
+                inputs = Inputs.randomIidIntsGenerator(Integer.parseInt(args[3].substring(3)));
             if (args[3].startsWith("timdrag"))
-                inputs = sebsInputs.timsortDragGenerator(Integer.parseInt(args[3].substring(7)));
+                inputs = Inputs.timsortDragGenerator(Integer.parseInt(args[3].substring(7)));
         }
 
         String outFileName = "mergesorts";
