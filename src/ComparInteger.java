@@ -14,6 +14,10 @@ public class ComparInteger implements Comparable<ComparInteger> {
         this.value = value;
     }
 
+    public String toString() {
+        return "" + this.value;
+    }
+
     @Override public int compareTo(ComparInteger otherint) {
         ComparablePowerSort.totalComparisonCosts++;
         return Integer.compare(this.value(), otherint.value());

@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -441,7 +442,7 @@ public class ComparablePowerSort {
         }
     }
 
-    private void mergeAtNew(int i) {
+    private void mergeAtSimple(int i) {
         assert stackSize >= 2;
         assert i >= 0;
         assert i == stackSize - 2 || i == stackSize - 3;
@@ -454,6 +455,35 @@ public class ComparablePowerSort {
         assert base1 + len1 == base2;
         totalMergeCosts += (len1 + len2);
 
+        runLen[i] = len1 + len2;
+        if (i == stackSize - 3) {
+            runBase[i + 1] = runBase[i + 2];
+            runLen[i + 1] = runLen[i + 2];
+            runPower[i + 1] = runPower[i + 2];
+        }
+        stackSize--;
+
+        //Object[] a = this.a; // For performance
+        Object[] tmp = new Object[len1 + len2];
+        //int tmpBase = this.tmpBase;
+        System.arraycopy(a, base1, tmp, 0, len1);
+        System.arraycopy(a, base2, tmp, len1, len2);
+        //System.out.println(Arrays.toString(tmp));
+        int k = base1, x = 0, y = len1 ;
+        while (x < len1 && y < len1 + len2) {
+            if (((Comparable) tmp[x]).compareTo(tmp[y]) < 0) {
+                a[k++] = tmp[x++];
+            } else {
+                a[k++] = tmp[y++];
+            }
+        }
+        if (x < len1) {
+            System.arraycopy(tmp, x, a, k, len1 - x);
+        }
+        if (y < (len1 + len2)) {
+            System.arraycopy(tmp, y, a, k, len2 - y + len1);
+        }
+    }
 
 
 //        Map<Integer,Boolean> mp = new TreeMap<Integer,Boolean>();
@@ -462,7 +492,6 @@ public class ComparablePowerSort {
 //
 //        }
 
-    }
 
 
     /**

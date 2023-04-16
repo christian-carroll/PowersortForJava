@@ -1,5 +1,3 @@
-// import jdk.incubator.foreign.SymbolLookup;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -9,14 +7,19 @@ import java.util.*;
 
 public class Main {
 
-    public static Boolean isSorted(Object[] array, Comparator cmp) {
+    public static Boolean isSorted(Object[] array, Comparator cmp, Object[] original) {
         if (cmp == null) {
             cmp = Comparator.naturalOrder();
         };
+        Arrays.sort(original, 0, original.length);
         //Ascending
         for (int i = 1; i < array.length; i++ ) {
+            if (!Objects.equals(array[i].toString(), original[i].toString())) {
+                System.out.println("Algorithm says " + array[i] + " timsort says "+ original[i]);
+                return false;
+            }
             if (cmp.compare(array[i - 1], array[i]) > 0) {
-                System.out.println("The offending pair " + array[i - 1] + " " + array[i] + " index " + i);
+                System.out.println("The offending pair " + array[i - 1] + " " + array[i] + " index " + i + " original says " + original[i]);
                 return false;
             }
         }
@@ -27,6 +30,7 @@ public class Main {
     public static boolean COUNT_COSTS = true;
 
     public static void main(String[] args) throws IOException {
+
         System.in.read();
         long seed = 42424242;
         int warmupRounds = 10_000;
@@ -70,7 +74,7 @@ public class Main {
 
         if (COUNT_COSTS) {
             out.write("algorithm,ms,n,input,input-num,merge-cost,comparison-cost\n");
-            System.out.println("Also counting merge cost in MergeUtil.mergeRuns");
+            System.out.println("Also counting merge costs.");
         } else {
             out.write("algorithm,ms,n,input,input-num\n");
             System.out.println("Not counting merge costs.");
@@ -82,15 +86,19 @@ public class Main {
             for (final int size : sizes) {
                 int[] A = input.next(size, random, null);
                 ComparInteger[] compareA = new ComparInteger[size];
+                ComparInteger[] copyForCheck = new ComparInteger[size];
                 for (int i = 0; i < size; i++) {
                     compareA[i] = new ComparInteger(A[i]);
+                    copyForCheck[i] = new ComparInteger(A[i]);
                 }
                 Integer[] integerA = Arrays.stream(A).boxed().toArray(Integer[]::new);
                 for (int r = 0; r < reps; ++r) {
                     if (r != 0) {
                         A = input.next(size, random, A);
-                        for (int i = 0; i < size; i++)
+                        for (int i = 0; i < size; i++) {
                             compareA[i] = new ComparInteger(A[i]);
+                            copyForCheck[i] = new ComparInteger(A[i]);
+                        }
                         integerA = Arrays.stream(A).boxed().toArray(Integer[]::new);
                     }
                     ComparablePowerSort.totalMergeCosts = 0;
@@ -99,7 +107,8 @@ public class Main {
                     Arrays.sort(compareA, 0, size);
                     //ComparablePowerSort.sort(compareA,0,size, null, 0, 0);
                     final long endNanos = System.nanoTime();
-                    if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(compareA, null)) {
+                    long comparisons = ComparablePowerSort.totalComparisonCosts; //Save them here as the isSorted checker runs array.sort which then adds to the comparison count
+                    if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(compareA, null, copyForCheck)) {
                         System.err.println("RESULT NOT SORTED!");
                         System.exit(3);
                     }
@@ -108,7 +117,7 @@ public class Main {
                     if (r != 0) {
                         // Skip first iteration, often slower!
                         if (COUNT_COSTS)
-                            out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "," + ComparablePowerSort.totalMergeCosts + "," + ComparablePowerSort.totalComparisonCosts + "\n");
+                            out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "," + ComparablePowerSort.totalMergeCosts + "," + comparisons + "\n");
                         else
                             out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "\n");
                         out.flush();
