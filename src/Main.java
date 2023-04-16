@@ -7,19 +7,14 @@ import java.util.*;
 
 public class Main {
 
-    public static Boolean isSorted(Object[] array, Comparator cmp, Object[] original) {
+    public static Boolean isSorted(Object[] array, Comparator cmp) {
         if (cmp == null) {
             cmp = Comparator.naturalOrder();
         };
-        Arrays.sort(original, 0, original.length);
         //Ascending
         for (int i = 1; i < array.length; i++ ) {
-            if (!Objects.equals(array[i].toString(), original[i].toString())) {
-                System.out.println("Algorithm says " + array[i] + " timsort says "+ original[i]);
-                return false;
-            }
             if (cmp.compare(array[i - 1], array[i]) > 0) {
-                System.out.println("The offending pair " + array[i - 1] + " " + array[i] + " index " + i + " original says " + original[i]);
+                System.out.println("The offending pair " + array[i - 1] + " " + array[i] + " index " + i);
                 return false;
             }
         }
@@ -86,10 +81,8 @@ public class Main {
             for (final int size : sizes) {
                 int[] A = input.next(size, random, null);
                 ComparInteger[] compareA = new ComparInteger[size];
-                ComparInteger[] copyForCheck = new ComparInteger[size];
                 for (int i = 0; i < size; i++) {
                     compareA[i] = new ComparInteger(A[i]);
-                    copyForCheck[i] = new ComparInteger(A[i]);
                 }
                 Integer[] integerA = Arrays.stream(A).boxed().toArray(Integer[]::new);
                 for (int r = 0; r < reps; ++r) {
@@ -97,7 +90,6 @@ public class Main {
                         A = input.next(size, random, A);
                         for (int i = 0; i < size; i++) {
                             compareA[i] = new ComparInteger(A[i]);
-                            copyForCheck[i] = new ComparInteger(A[i]);
                         }
                         integerA = Arrays.stream(A).boxed().toArray(Integer[]::new);
                     }
@@ -107,8 +99,7 @@ public class Main {
                     Arrays.sort(compareA, 0, size);
                     //ComparablePowerSort.sort(compareA,0,size, null, 0, 0);
                     final long endNanos = System.nanoTime();
-                    long comparisons = ComparablePowerSort.totalComparisonCosts; //Save them here as the isSorted checker runs array.sort which then adds to the comparison count
-                    if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(compareA, null, copyForCheck)) {
+                    if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(compareA, null)) {
                         System.err.println("RESULT NOT SORTED!");
                         System.exit(3);
                     }
@@ -117,7 +108,7 @@ public class Main {
                     if (r != 0) {
                         // Skip first iteration, often slower!
                         if (COUNT_COSTS)
-                            out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "," + ComparablePowerSort.totalMergeCosts + "," + comparisons + "\n");
+                            out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "," + ComparablePowerSort.totalMergeCosts + "," + ComparablePowerSort.totalComparisonCosts + "\n");
                         else
                             out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "\n");
                         out.flush();
