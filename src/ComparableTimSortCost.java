@@ -1,10 +1,45 @@
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
+/*
+ * Copyright (c) 2009, 2013, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2009 Google Inc.  All Rights Reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
+ */
 
-public class ComparablePowerSort {
 
+
+/**
+ * This is a near duplicate of {@link TimSort}, modified for use with
+ * arrays of objects that implement {@link Comparable}, instead of using
+ * explicit comparators.
+ *
+ * <p>If you are using an optimizing VM, you may find that ComparableTimSort
+ * offers no performance benefit over TimSort in conjunction with a
+ * comparator that simply returns {@code ((Comparable)first).compareTo(Second)}.
+ * If this is the case, you are better off deleting ComparableTimSort to
+ * eliminate the code duplication.  (See Arrays.java for details.)
+ *
+ * @author Josh Bloch
+ */
+class ComparableTimSortCost {
     /**
      * This is the minimum sized sequence that will be merged.  Shorter
      * sequences will be lengthened by calling binarySort.  If the entire
@@ -60,11 +95,6 @@ public class ComparablePowerSort {
     private int tmpBase; // base of tmp array slice
     private int tmpLen;  // length of tmp array slice
 
-    public static int log2(int n) {
-        if(n == 0) throw new IllegalArgumentException("lg(0) undefined");
-        return 31 - Integer.numberOfLeadingZeros( n );
-    }
-
     /**
      * A stack of pending runs yet to be merged.  Run i starts at
      * address base[i] and extends for len[i] elements.  It's always
@@ -78,10 +108,7 @@ public class ComparablePowerSort {
     private int stackSize = 0;  // Number of pending runs on stack
     private final int[] runBase;
     private final int[] runLen;
-    private final int[] runPower;
     public static long totalMergeCosts = 0;
-
-
 
     /**
      * Creates a TimSort instance to maintain the state of an ongoing sort.
@@ -91,7 +118,7 @@ public class ComparablePowerSort {
      * @param workBase origin of usable space in work array
      * @param workLen usable size of work array
      */
-    private ComparablePowerSort(Object[] a, Object[] work, int workBase, int workLen) {
+    private ComparableTimSortCost(Object[] a, Object[] work, int workBase, int workLen) {
         this.a = a;
 
         // Allocate temp storage (which may be increased later if necessary)
@@ -123,10 +150,11 @@ public class ComparablePowerSort {
          * increasing scenario. More explanations are given in section 4 of:
          * http://envisage-project.eu/wp-content/uploads/2015/02/sorting.pdf
          */
-        int stackLen = log2(len) + 2;
+        int stackLen = (len <    120  ?  5 :
+                len <   1542  ? 10 :
+                        len < 119151  ? 24 : 49);
         runBase = new int[stackLen];
         runLen = new int[stackLen];
-        runPower= new int[stackLen];
     }
 
     /*
@@ -149,7 +177,7 @@ public class ComparablePowerSort {
      * @param workLen usable size of work array
      * @since 1.8
      */
-    static void sort(Object[] a, int lo, int hi, Object[] work, int workBase, int workLen) throws IOException {
+    static void sort(Object[] a, int lo, int hi, Object[] work, int workBase, int workLen) {
         assert a != null && lo >= 0 && lo <= hi && hi <= a.length;
 
         int nRemaining  = hi - lo;
@@ -163,37 +191,16 @@ public class ComparablePowerSort {
             return;
         }
 
-        int sortStart = lo;
-
-
-
         /**
          * March over the array once, left to right, finding natural runs,
          * extending short natural runs to minRun elements, and merging runs
          * to maintain stack invariant.
          */
-        ComparablePowerSort ps = new ComparablePowerSort(a, work, workBase, workLen);
+        ComparableTimSortCost ts = new ComparableTimSortCost(a, work, workBase, workLen);
         int minRun = minRunLength(nRemaining);
-
-        int runLen = countRunAndMakeAscending(a, lo, hi);
-//        System.out.println("Stack size " + ps.stackSize);
-
-        // If run is short, extend to min(minRun, nRemaining)
-        if (runLen < minRun) {
-            int force = nRemaining <= minRun ? nRemaining : minRun;
-            binarySort(a, lo, lo + force, lo + runLen);
-            runLen = force;
-        }
-
-        ps.pushRun(lo, runLen);
-        // Advance to find next run
-        lo += runLen;
-        nRemaining -= runLen;
-
         do {
             // Identify next run
-            runLen = countRunAndMakeAscending(a, lo, hi);
-//            System.out.println("Stack size " + ps.stackSize);
+            int runLen = countRunAndMakeAscending(a, lo, hi);
 
             // If run is short, extend to min(minRun, nRemaining)
             if (runLen < minRun) {
@@ -202,38 +209,19 @@ public class ComparablePowerSort {
                 runLen = force;
             }
 
-            int power = nodePower(sortStart, hi, ps.runBase[ps.stackSize - 1], lo, lo + runLen);
-//            System.out.println("New power " + power);
-//            System.out.println(java.util.Arrays.toString(ps.runPower));
-            while (ps.stackSize > 1 && ps.runPower[ps.stackSize - 2] > power) {
-//                System.out.println("merging");
-                ps.mergeAt(ps.stackSize - 2);
-            }
-            ps.runPower[ps.stackSize - 1] = power;
-
             // Push run onto pending-run stack, and maybe merge
-            ps.pushRun(lo, runLen);
-            //ps.mergeCollapse();
+            ts.pushRun(lo, runLen);
+            ts.mergeCollapse();
 
             // Advance to find next run
             lo += runLen;
             nRemaining -= runLen;
-
         } while (nRemaining != 0);
 
         // Merge all remaining runs to complete sort
         assert lo == hi;
-        ps.mergeForceCollapse();
-        assert ps.stackSize == 1;
-    }
-
-    private static int nodePower(int left, int right, int startA, int startB, int endB) {
-        int length = (right - left + 1);
-        long l = (long) startA + (long) startB - ((long) left << 1); // 2*middleA
-        long r = (long) startB + (long) endB + 1 - ((long) left << 1); // 2*middleB
-        int a = (int) ((l << 30) / length); // middleA / 2n
-        int b = (int) ((r << 30) / length); // middleB / 2n
-        return Integer.numberOfLeadingZeros(a ^ b);
+        ts.mergeForceCollapse();
+        assert ts.stackSize == 1;
     }
 
     /**
@@ -272,9 +260,8 @@ public class ComparablePowerSort {
              */
             while (left < right) {
                 int mid = (left + right) >>> 1;
-                if (pivot.compareTo(a[mid]) < 0) {
+                if (pivot.compareTo(a[mid]) < 0)
                     right = mid;
-                }
                 else
                     left = mid + 1;
             }
@@ -332,14 +319,12 @@ public class ComparablePowerSort {
 
         // Find end of run, and reverse range if descending
         if (((Comparable) a[runHi++]).compareTo(a[lo]) < 0) { // Descending
-            while (runHi < hi && ((Comparable) a[runHi]).compareTo(a[runHi - 1]) < 0) {
+            while (runHi < hi && ((Comparable) a[runHi]).compareTo(a[runHi - 1]) < 0)
                 runHi++;
-            }
             reverseRange(a, lo, runHi);
         } else {                              // Ascending
-            while (runHi < hi && ((Comparable) a[runHi]).compareTo(a[runHi - 1]) >= 0) {
+            while (runHi < hi && ((Comparable) a[runHi]).compareTo(a[runHi - 1]) >= 0)
                 runHi++;
-            }
         }
 
         return runHi - lo;
@@ -390,6 +375,7 @@ public class ComparablePowerSort {
 
     /**
      * Pushes the specified run onto the pending-run stack.
+     *
      * @param runBase index of the first element in the run
      * @param runLen  the number of elements in the run
      */
@@ -442,78 +428,6 @@ public class ComparablePowerSort {
         }
     }
 
-    private void mergeAtSimple(int i) {
-        assert stackSize >= 2;
-        assert i >= 0;
-        assert i == stackSize - 2 || i == stackSize - 3;
-
-        int base1 = runBase[i];
-        int len1 = runLen[i];
-        int base2 = runBase[i + 1];
-        int len2 = runLen[i + 1];
-        assert len1 > 0 && len2 > 0;
-        assert base1 + len1 == base2;
-        totalMergeCosts += (len1 + len2);
-
-        runLen[i] = len1 + len2;
-        if (i == stackSize - 3) {
-            runBase[i + 1] = runBase[i + 2];
-            runLen[i + 1] = runLen[i + 2];
-            runPower[i + 1] = runPower[i + 2];
-        }
-        stackSize--;
-
-        //Object[] a = this.a; // For performance
-        Object[] tmp = new Object[len1 + len2];
-        //int tmpBase = this.tmpBase;
-        System.arraycopy(a, base1, tmp, 0, len1);
-        System.arraycopy(a, base2, tmp, len1, len2);
-        //System.out.println(Arrays.toString(tmp));
-        int k = base1, x = 0, y = len1 ;
-        while (x < len1 && y < len1 + len2) {
-            if (((Comparable) tmp[x]).compareTo(tmp[y]) < 0) {
-                a[k++] = tmp[x++];
-            } else {
-                a[k++] = tmp[y++];
-            }
-        }
-        if (x < len1) {
-            System.arraycopy(tmp, x, a, k, len1 - x);
-        }
-        if (y < (len1 + len2)) {
-            System.arraycopy(tmp, y, a, k, len2 - y + len1);
-        }
-    }
-
-    private void mergeAtSedgewick(int i) {
-        assert stackSize >= 2;
-        assert i >= 0;
-        assert i == stackSize - 2 || i == stackSize - 3;
-
-        int base1 = runBase[i];
-        int len1 = runLen[i];
-        int base2 = runBase[i + 1];
-        int len2 = runLen[i + 1];
-        assert len1 > 0 && len2 > 0;
-        assert base1 + len1 == base2;
-        totalMergeCosts += (len1 + len2);
-
-        runLen[i] = len1 + len2;
-        if (i == stackSize - 3) {
-            runBase[i + 1] = runBase[i + 2];
-            runLen[i + 1] = runLen[i + 2];
-            runPower[i + 1] = runPower[i + 2];
-        }
-        stackSize--;
-
-        Object[] tmp = new Object[len1 + len2];
-        System.arraycopy(a, base1, tmp, 0, len1);
-        System.arraycopy(a, base2, tmp, len1, len2);
-        reverseRange(a, len1, len1 + len2 );
-
-    }
-
-
     /**
      * Merges the two runs at stack indices i and i+1.  Run i must be
      * the penultimate or antepenultimate run on the stack.  In other words,
@@ -535,7 +449,6 @@ public class ComparablePowerSort {
         assert base1 + len1 == base2;
         totalMergeCosts += (len1 + len2);
 
-
         /*
          * Record the length of the combined runs; if i is the 3rd-last
          * run now, also slide over the last run (which isn't involved
@@ -545,7 +458,6 @@ public class ComparablePowerSort {
         if (i == stackSize - 3) {
             runBase[i + 1] = runBase[i + 2];
             runLen[i + 1] = runLen[i + 2];
-            runPower[i + 1] = runPower[i + 2];
         }
         stackSize--;
 
@@ -643,9 +555,8 @@ public class ComparablePowerSort {
         while (lastOfs < ofs) {
             int m = lastOfs + ((ofs - lastOfs) >>> 1);
 
-            if (key.compareTo(a[base + m]) > 0) {
+            if (key.compareTo(a[base + m]) > 0)
                 lastOfs = m + 1;  // a[base + m] < key
-            }
             else
                 ofs = m;          // key <= a[base + m]
         }
@@ -996,4 +907,3 @@ public class ComparablePowerSort {
     }
 
 }
-

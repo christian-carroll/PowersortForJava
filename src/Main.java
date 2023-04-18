@@ -23,6 +23,7 @@ public class Main {
 
     public static boolean ABORT_IF_RESULT_IS_NOT_SORTED = true;
     public static boolean COUNT_COSTS = true;
+    public static long totalComparisonCosts = 0;
 
     public static void main(String[] args) throws IOException {
 
@@ -58,11 +59,12 @@ public class Main {
         System.out.println("Doing warmup (" + warmupRounds + " rounds)");
         Random random = new Random(seed);
         for (int r = 0; r < warmupRounds; ++r) {
-                for (final int size : new int[]{10000, 1000, 1000}) {
+                for (final int size : new int[]{10000, 1000, 10000}) {
                     final int[] intWarm = warmupInput.next(size, random, null);
                     final Integer[] warmup = Arrays.stream( intWarm ).boxed().toArray( Integer[]::new );
                     //ComparablePowerSort.sort(warmup,0,size, null, 0, 0);
-                    Arrays.sort(warmup, 0, size);
+                    ComparableTimSortCost.sort(warmup,0,size, null, 0, 0);
+                    //Arrays.sort(warmup, 0, size);
                 }
         }
         System.out.println("Warmup finished!\n");
@@ -94,10 +96,12 @@ public class Main {
                         integerA = Arrays.stream(A).boxed().toArray(Integer[]::new);
                     }
                     ComparablePowerSort.totalMergeCosts = 0;
-                    ComparablePowerSort.totalComparisonCosts = 0;
+                    totalComparisonCosts = 0;
+                    ComparableTimSortCost.totalMergeCosts = 0;
                     final long startNanos = System.nanoTime();
-                    Arrays.sort(compareA, 0, size);
+                    //Arrays.sort(compareA, 0, size);
                     //ComparablePowerSort.sort(compareA,0,size, null, 0, 0);
+                    ComparableTimSortCost.sort(compareA,0,size, null, 0, 0);
                     final long endNanos = System.nanoTime();
                     if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(compareA, null)) {
                         System.err.println("RESULT NOT SORTED!");
@@ -105,10 +109,11 @@ public class Main {
                     }
                     final double msDiff = (endNanos - startNanos) / 1e6;
                     msTimes[r] = msDiff;
+                    long mergeCost = ComparablePowerSort.totalMergeCosts == 0 ? ComparableTimSortCost.totalMergeCosts : ComparablePowerSort.totalMergeCosts;
                     if (r != 0) {
                         // Skip first iteration, often slower!
                         if (COUNT_COSTS)
-                            out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "," + ComparablePowerSort.totalMergeCosts + "," + ComparablePowerSort.totalComparisonCosts + "\n");
+                            out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "," + mergeCost + "," + totalComparisonCosts + "\n");
                         else
                             out.write(algoName + "," + msDiff + "," + size + "," + input + "," + r + "\n");
                         out.flush();

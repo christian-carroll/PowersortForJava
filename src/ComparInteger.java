@@ -19,7 +19,7 @@ public class ComparInteger implements Comparable<ComparInteger> {
     }
 
     @Override public int compareTo(ComparInteger otherint) {
-        ComparablePowerSort.totalComparisonCosts++;
+        Main.totalComparisonCosts++;
         return Integer.compare(this.value(), otherint.value());
     }
 }
