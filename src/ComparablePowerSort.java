@@ -163,10 +163,6 @@ public class ComparablePowerSort {
             return;
         }
 
-        int sortStart = lo;
-
-
-
         /**
          * March over the array once, left to right, finding natural runs,
          * extending short natural runs to minRun elements, and merging runs
@@ -174,9 +170,8 @@ public class ComparablePowerSort {
          */
         ComparablePowerSort ps = new ComparablePowerSort(a, work, workBase, workLen);
         int minRun = minRunLength(nRemaining);
-
+        int sortStart = lo;     //Needed for the power calculations
         int runLen = countRunAndMakeAscending(a, lo, hi);
-//        System.out.println("Stack size " + ps.stackSize);
 
         // If run is short, extend to min(minRun, nRemaining)
         if (runLen < minRun) {
@@ -190,10 +185,9 @@ public class ComparablePowerSort {
         lo += runLen;
         nRemaining -= runLen;
 
-        do {
+        while (nRemaining != 0) {
             // Identify next run
             runLen = countRunAndMakeAscending(a, lo, hi);
-//            System.out.println("Stack size " + ps.stackSize);
 
             // If run is short, extend to min(minRun, nRemaining)
             if (runLen < minRun) {
@@ -203,23 +197,18 @@ public class ComparablePowerSort {
             }
 
             int power = nodePower(sortStart, hi, ps.runBase[ps.stackSize - 1], lo, lo + runLen);
-//            System.out.println("New power " + power);
-//            System.out.println(java.util.Arrays.toString(ps.runPower));
             while (ps.stackSize > 1 && ps.runPower[ps.stackSize - 2] > power) {
-//                System.out.println("merging");
                 ps.mergeAt(ps.stackSize - 2);
             }
             ps.runPower[ps.stackSize - 1] = power;
 
-            // Push run onto pending-run stack, and maybe merge
+            // Push run onto pending-run stack
             ps.pushRun(lo, runLen);
-            //ps.mergeCollapse();
 
             // Advance to find next run
             lo += runLen;
             nRemaining -= runLen;
-
-        } while (nRemaining != 0);
+        }
 
         // Merge all remaining runs to complete sort
         assert lo == hi;
