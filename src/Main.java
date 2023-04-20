@@ -29,15 +29,15 @@ public class Main {
         System.in.read();
         long seed = 62423892;
         int warmupRounds = 10_000;
-        List<Integer> sizes = Arrays.asList(100);
+        List<Integer> sizes = Arrays.asList(100,1000,10_000,100_000,1_000_000, 10_000_000);
         int reps = 100;
         double[] msTimes = new double[reps];
         int inputRunLength = 1000;
 
-        Inputs.InputGenerator[] inputTypes = {Inputs.randomRunsGenerator(inputRunLength)};
+        Inputs.InputGenerator[] inputTypes = {Inputs.RANDOM_PERMUTATIONS_GENERATOR, Inputs.randomRunsGenerator(inputRunLength), Inputs.timsortDragGenerator(32)};
         Inputs.InputGenerator warmupInput = Inputs.RANDOM_PERMUTATIONS_GENERATOR;
 
-        final String algoName = "Power+test";
+        final String algoName = "Power+costs";
 
         String outdirect = "/Users/ChristianCarroll/Documents/Uni_final_year/Dissertation/PowerSort/Powersort_project/Output/";
         String fileName = algoName;
