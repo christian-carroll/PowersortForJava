@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+
+
 public class Main {
 
     public static Boolean isSorted(Object[] array, Comparator cmp) {
@@ -34,10 +36,10 @@ public class Main {
         double[] msTimes = new double[reps];
         int inputRunLength = 1000;
 
-        Inputs.InputGenerator[] inputTypes = {Inputs.randomRunsGenerator(inputRunLength)};
+        Inputs.InputGenerator[] inputTypes = {Inputs.timsortDragGenerator(128)};
         Inputs.InputGenerator warmupInput = Inputs.RANDOM_PERMUTATIONS_GENERATOR;
 
-        final String algoName = "Timsort+costs+slowCompare";
+        final String algoName = "Powersort+Drag";
 
         String outdirect = "/Users/ChristianCarroll/Documents/Uni_final_year/Dissertation/PowerSort/Powersort_project/Output/";
         String fileName = algoName;
@@ -61,8 +63,8 @@ public class Main {
                 for (final int size : new int[]{10000, 1000, 10000}) {
                     final int[] intWarm = warmupInput.next(size, random, null);
                     final Integer[] warmup = Arrays.stream( intWarm ).boxed().toArray( Integer[]::new );
-                    //ComparablePowerSort.sort(warmup,0,size, null, 0, 0);
-                    ComparableTimSortCost.sort(warmup,0,size, null, 0, 0);
+                    ComparablePowerSort.sort(warmup,0,size, null, 0, 0);
+                    //ComparableTimSortCost.sort(warmup,0,size, null, 0, 0);
                     //Arrays.sort(warmup, 0, size);
                 }
         }
@@ -97,8 +99,8 @@ public class Main {
                     ComparableTimSortCost.totalMergeCosts = 0;
                     final long startNanos = System.nanoTime();
                     //Arrays.sort(compareA, 0, size);
-                    //ComparablePowerSort.sort(compareA,0,size, null, 0, 0);
-                    ComparableTimSortCost.sort(compareA,0,size, null, 0, 0);
+                    ComparablePowerSort.sort(compareA,0,size, null, 0, 0);
+                    //ComparableTimSortCost.sort(compareA,0,size, null, 0, 0);
                     final long endNanos = System.nanoTime();
                     if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(compareA, null)) {
                         System.err.println("RESULT NOT SORTED!");

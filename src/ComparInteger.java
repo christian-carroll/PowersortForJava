@@ -1,3 +1,4 @@
+
 import java.util.Random;
 
 public class ComparInteger implements Comparable<ComparInteger> {
@@ -30,7 +31,6 @@ public class ComparInteger implements Comparable<ComparInteger> {
     }
 
     @Override public int compareTo(ComparInteger otherint) {
-        slowDown();
         Main.totalComparisonCosts++;
         return Integer.compare(this.value(), otherint.value());
     }
