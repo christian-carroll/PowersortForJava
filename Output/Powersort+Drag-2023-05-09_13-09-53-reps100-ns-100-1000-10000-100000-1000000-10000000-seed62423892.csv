@@ -589,3 +589,14 @@ Powersort+Drag,6826.664794,10000000,timsort-drag-minRunLen-128,87,154595072,1744
 Powersort+Drag,6902.99987,10000000,timsort-drag-minRunLen-128,88,154595072,174477764
 Powersort+Drag,7351.666266,10000000,timsort-drag-minRunLen-128,89,154595072,174475731
 Powersort+Drag,7110.45889,10000000,timsort-drag-minRunLen-128,90,154595072,174476382
+Powersort+Drag,9120.654563,10000000,timsort-drag-minRunLen-128,91,154595072,174475252
+Powersort+Drag,7015.341967,10000000,timsort-drag-minRunLen-128,92,154595072,174475933
+Powersort+Drag,7366.981833,10000000,timsort-drag-minRunLen-128,93,154595072,174475996
+Powersort+Drag,7502.967649,10000000,timsort-drag-minRunLen-128,94,154595072,174474489
+Powersort+Drag,7336.952541,10000000,timsort-drag-minRunLen-128,95,154595072,174475097
+Powersort+Drag,7415.608921,10000000,timsort-drag-minRunLen-128,96,154595072,174475823
+Powersort+Drag,7775.984036,10000000,timsort-drag-minRunLen-128,97,154595072,174474868
+Powersort+Drag,7258.478168,10000000,timsort-drag-minRunLen-128,98,154595072,174475544
+Powersort+Drag,7376.529597,10000000,timsort-drag-minRunLen-128,99,154595072,174475555
+Finished input type: timsort-drag-minRunLen-128 Average ms: 6967.63469958 Fastest time (ms): 5836.677122 Slowest time (ms): 9120.654563
+#finished: -2023-05-09_13-26-37
