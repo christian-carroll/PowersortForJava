@@ -30,8 +30,8 @@ public class ComparInteger implements Comparable<ComparInteger> {
         slowDownComparisons += nextInt;
     }
 
-    @Override public int compareTo(ComparInteger otherint) {
+    @Override public int compareTo(ComparInteger otherInt) {
         Main.totalComparisonCosts++;
-        return Integer.compare(this.value(), otherint.value());
+        return Integer.compare(this.value(), otherInt.value());
     }
 }
