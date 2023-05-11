@@ -1,5 +1,11 @@
-import java.io.IOException;
 
+/**
+ * This is an implementation of Powersort created by modifying Josh Bloch's
+ * OpenJDK ComparableTimsort implementation to use Powersort's merge policy.
+ * and any other adjustments to make that work
+ *
+ * @author Christian Carroll
+ */
 public class ComparablePowerSort {
 
     /**
@@ -57,6 +63,15 @@ public class ComparablePowerSort {
     private int tmpBase; // base of tmp array slice
     private int tmpLen;  // length of tmp array slice
 
+    /**
+     * Calculates the log base 2 of n
+     *
+     * This is taken from Sebastian Wild's Java Powersort in his
+     * nearly-optimal-mergesort-code repository
+     *
+     * @param n the length of the array to be sorted
+     * @return the log base 2 of n
+     */
     public static int log2(int n) {
         if(n == 0) throw new IllegalArgumentException("lg(0) undefined");
         return 31 - Integer.numberOfLeadingZeros( n );
@@ -71,6 +86,7 @@ public class ComparablePowerSort {
      *
      * so we could cut the storage for this, but it's a minor amount,
      * and keeping all the info explicit simplifies the code.
+     * runPower holds the powers for the run at the respective index in the stack, once it has been calculated
      */
     private int stackSize = 0;  // Number of pending runs on stack
     private final int[] runBase;
@@ -107,18 +123,8 @@ public class ComparablePowerSort {
         }
 
         /*
-         * Allocate runs-to-be-merged stack (which cannot be expanded).  The
-         * stack length requirements are described in listsort.txt.  The C
-         * version always uses the same stack length (85), but this was
-         * measured to be too expensive when sorting "mid-sized" arrays (e.g.,
-         * 100 elements) in Java.  Therefore, we use smaller (but sufficiently
-         * large) stack lengths for smaller arrays.  The "magic numbers" in the
-         * computation below must be changed if MIN_MERGE is decreased.  See
-         * the MIN_MERGE declaration above for more information.
-         * The maximum value of 49 allows for an array up to length
-         * Integer.MAX_VALUE-4, if array is filled by the worst case stack size
-         * increasing scenario. More explanations are given in section 4 of:
-         * http://envisage-project.eu/wp-content/uploads/2015/02/sorting.pdf
+         * Allocate runs-to-be-merged stack (which cannot be expanded).
+         * Powersort never needs a stack size larger than Log n (base 2) + 2
          */
         int stackLen = log2(len) + 2;
         runBase = new int[stackLen];
@@ -146,14 +152,14 @@ public class ComparablePowerSort {
      * @param workLen usable size of work array
      * @since 1.8
      */
-    static void sort(Object[] a, int lo, int hi, Object[] work, int workBase, int workLen) throws IOException {
+    static void sort(Object[] a, int lo, int hi, Object[] work, int workBase, int workLen) {
         assert a != null && lo >= 0 && lo <= hi && hi <= a.length;
 
         int nRemaining  = hi - lo;
         if (nRemaining < 2)
             return;  // Arrays of size 0 and 1 are always sorted
 
-        // If array is small, do a "mini-TimSort" with no merges
+        // If array is small, do a "mini-Powersort" with no merges
         if (nRemaining < MIN_MERGE) {
             int initRunLen = countRunAndMakeAscending(a, lo, hi);
             binarySort(a, lo, hi, lo + initRunLen);
@@ -162,8 +168,9 @@ public class ComparablePowerSort {
 
         /**
          * March over the array once, left to right, finding natural runs,
-         * extending short natural runs to minRun elements, and merging runs
-         * to maintain stack invariant.
+         * extending short natural runs to minRun elements, calculating the
+         * power of the runs and merging if it is smaller than those below
+         * it on the stack.
          */
         ComparablePowerSort ps = new ComparablePowerSort(a, work, workBase, workLen);
         int minRun = minRunLength(nRemaining);
@@ -193,10 +200,14 @@ public class ComparablePowerSort {
                 runLen = force;
             }
 
+            // Calculate 'power' of the run at the top of the stack - not the one just discovered
+            // If this power is smaller than the one below it, merge the runs,
+            // and keeping merging while this is true
             int power = nodePower(sortStart, hi, ps.runBase[ps.stackSize - 1], lo, lo + runLen);
             while (ps.stackSize > 1 && ps.runPower[ps.stackSize - 2] > power) {
                 ps.mergeAt(ps.stackSize - 2);
             }
+            // Assign power to its associated run
             ps.runPower[ps.stackSize - 1] = power;
 
             // Push run onto pending-run stack
@@ -213,6 +224,21 @@ public class ComparablePowerSort {
         assert ps.stackSize == 1;
     }
 
+    /**
+     * Calculate power of a run (A), using the first and last index of
+     * the array to be sorted, its starting index, the starting
+     * index of the next adjacent run (B) and the ending index of B
+     *
+     * This is taken from Sebastian Wild's Java Powersort in his
+     * nearly-optimal-mergesort-code repository
+     *
+     * @param left  leftmost (or lowest) index of the array to be sorted
+     * @param right rightmost (or highest) index of the array to be sorted
+     * @param startA index at which run A starts at
+     * @param startB index at which run B starts at
+     * @param endB index at which run B ends at
+     * @return power value of run A
+     */
     private static int nodePower(int left, int right, int startA, int startB, int endB) {
         int length = (right - left + 1);
         long l = (long) startA + (long) startB - ((long) left << 1); // 2*middleA
@@ -386,36 +412,6 @@ public class ComparablePowerSort {
     }
 
     /**
-     * Examines the stack of runs waiting to be merged and merges adjacent runs
-     * until the stack invariants are reestablished:
-     *
-     *     1. runLen[i - 3] > runLen[i - 2] + runLen[i - 1]
-     *     2. runLen[i - 2] > runLen[i - 1]
-     *
-     * This method is called each time a new run is pushed onto the stack,
-     * so the invariants are guaranteed to hold for i < stackSize upon
-     * entry to the method.
-     *
-     * Thanks to Stijn de Gouw, Jurriaan Rot, Frank S. de Boer,
-     * Richard Bubel and Reiner Hahnle, this is fixed with respect to
-     * the analysis in "On the Worst-Case Complexity of TimSort" by
-     * Nicolas Auger, Vincent Jug, Cyril Nicaud, and Carine Pivoteau.
-     */
-    private void mergeCollapse() {
-        while (stackSize > 1) {
-            int n = stackSize - 2;
-            if (n > 0 && runLen[n-1] <= runLen[n] + runLen[n+1] ||
-                    n > 1 && runLen[n-2] <= runLen[n] + runLen[n-1]) {
-                if (runLen[n - 1] < runLen[n + 1])
-                    n--;
-            } else if (n < 0 || runLen[n] > runLen[n + 1]) {
-                break; // Invariant is established
-            }
-            mergeAt(n);
-        }
-    }
-
-    /**
      * Merges all runs on the stack until only one remains.  This method is
      * called once, to complete the sort.
      */
@@ -427,6 +423,13 @@ public class ComparablePowerSort {
             mergeAt(n);
         }
     }
+
+    /**
+     * This was created for testing just for the intrigue of how well it would
+     * fare against timsort's complex merging method
+     *
+     * @param i index to merge at
+     */
 
     private void mergeAtSimple(int i) {
         assert stackSize >= 2;
@@ -469,34 +472,6 @@ public class ComparablePowerSort {
         if (y < (len1 + len2)) {
             System.arraycopy(tmp, y, a, k, len2 - y + len1);
         }
-    }
-
-    private void mergeAtSedgewick(int i) {
-        assert stackSize >= 2;
-        assert i >= 0;
-        assert i == stackSize - 2 || i == stackSize - 3;
-
-        int base1 = runBase[i];
-        int len1 = runLen[i];
-        int base2 = runBase[i + 1];
-        int len2 = runLen[i + 1];
-        assert len1 > 0 && len2 > 0;
-        assert base1 + len1 == base2;
-        totalMergeCosts += (len1 + len2);
-
-        runLen[i] = len1 + len2;
-        if (i == stackSize - 3) {
-            runBase[i + 1] = runBase[i + 2];
-            runLen[i + 1] = runLen[i + 2];
-            runPower[i + 1] = runPower[i + 2];
-        }
-        stackSize--;
-
-        Object[] tmp = new Object[len1 + len2];
-        System.arraycopy(a, base1, tmp, 0, len1);
-        System.arraycopy(a, base2, tmp, len1, len2);
-        reverseRange(a, len1, len1 + len2 );
-
     }
 
 
