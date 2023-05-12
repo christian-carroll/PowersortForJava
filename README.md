@@ -22,7 +22,7 @@ work properly, not sure why as all I did was change the comparators to equalitie
 TimSortAlter is me taking the origninal TimSort and altering it into a powersort while trying to change as little as possible, going with the idea that if
 it's as similar as possible to the current standard then it could be good.
 
-TimSortAlterNoComparator is the same idea as TimSortAlter but again to work with primitive data types. CURRENT WIP
+TimSortInt is the same idea as TimSortAlter but again to work with primitive data types. CURRENT WIP
 
 TimSort - OpenJDK's int version of timsort
 

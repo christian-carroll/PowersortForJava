@@ -25,42 +25,8 @@
 
  */
 
-import java.lang.reflect.Array;
 
-/**
- * A stable, adaptive, iterative mergesort that requires far fewer than
- * n lg(n) comparisons when running on partially sorted arrays, while
- * offering performance comparable to a traditional mergesort when run
- * on random arrays.  Like all proper mergesorts, this sort is stable and
- * runs O(n log n) time (worst case).  In the worst case, this sort requires
- * temporary storage space for n/2 object references; in the best case,
- * it requires only a small constant amount of space.
- *
- * This implementation was adapted from Tim Peters's list sort for
- * Python, which is described in detail here:
- *
- *   http://svn.python.org/projects/python/trunk/Objects/listsort.txt
- *
- * Tim's C code may be found here:
- *
- *   http://svn.python.org/projects/python/trunk/Objects/listobject.c
- *
- * The underlying techniques are described in this paper (and may have
- * even earlier origins):
- *
- *  "Optimistic Sorting and Information Theoretic Complexity"
- *  Peter McIlroy
- *  SODA (Fourth Annual ACM-SIAM Symposium on Discrete Algorithms),
- *  pp 467-474, Austin, Texas, 25-27 January 1993.
- *
- * While the API to this class consists solely of static methods, it is
- * (privately) instantiable; a TimSort instance holds the state of an ongoing
- * sort, assuming the input array is large enough to warrant the full-blown
- * TimSort. Small arrays are sorted in place, using a binary insertion sort.
- *
- * @author Josh Bloch
- */
-class TimSortAlterNoComparator<T> {
+class TimSortInt {
     /**
      * This is the minimum sized sequence that will be merged.  Shorter
      * sequences will be lengthened by calling binarySort.  If the entire
@@ -111,7 +77,7 @@ class TimSortAlterNoComparator<T> {
      * @param workBase origin of usable space in work array
      * @param workLen  usable size of work array
      */
-    private TimSortAlterNoComparator(int[] a, int[] work, int workBase, int workLen) {
+    private TimSortInt(int[] a, int[] work, int workBase, int workLen) {
         this.a = a;
         int len = a.length;
 
@@ -178,7 +144,7 @@ class TimSortAlterNoComparator<T> {
          * extending short natural runs to minRun elements, and merging runs
          * to maintain stack invariant.
          */
-        TimSortAlterNoComparator ts = new TimSortAlterNoComparator(a, work, workBase, workLen);
+        TimSortInt ts = new TimSortInt(a, work, workBase, workLen);
         int minRun = minRunLength(nRemaining);
         int prevRunBase = 0;
         int prevRunEnd = 0;

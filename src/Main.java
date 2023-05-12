@@ -99,8 +99,8 @@ public class Main {
                     ComparableTimSortCost.totalMergeCosts = 0;
                     final long startNanos = System.nanoTime();
                     //Arrays.sort(compareA, 0, size);
-                    ComparablePowerSort.sort(compareA,0,size, null, 0, 0);
-                    //ComparableTimSortCost.sort(compareA,0,size, null, 0, 0);
+                    //ComparablePowerSort.sort(compareA,0,size, null, 0, 0);
+                    ComparableTimSortCost.sort(compareA,0,size, null, 0, 0);
                     final long endNanos = System.nanoTime();
                     if (ABORT_IF_RESULT_IS_NOT_SORTED && !isSorted(compareA, null)) {
                         System.err.println("RESULT NOT SORTED!");
